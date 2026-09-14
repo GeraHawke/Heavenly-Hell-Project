@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -33,6 +35,7 @@
     >
 
     <style>
+
         :root {
             --rojisima: #D61F3A;
             --bluetech: #4FA9C6;
@@ -40,11 +43,13 @@
             --white: #E8E6E3;
         }
 
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
+
 
         body {
             width: 100vw;
@@ -55,12 +60,14 @@
             color: var(--dark);
         }
 
+
         .game {
             position: relative;
             width: 100%;
             height: 100%;
             overflow: hidden;
         }
+
 
         #world {
             position: absolute;
@@ -72,6 +79,7 @@
             will-change: transform;
         }
 
+
         .world-chunk {
             position: absolute;
             width: 500px;
@@ -80,6 +88,7 @@
             overflow: hidden;
             z-index: 0;
         }
+
 
         .world-chunk::after {
             content: "";
@@ -112,8 +121,10 @@
             background-size: 50px 50px;
         }
 
+
         .cover-block {
             position: absolute;
+
             background: var(--dark);
 
             border:
@@ -138,10 +149,13 @@
             pointer-events: none;
         }
 
+
         .cover-cell {
             position: absolute;
+
             width: 50px;
             height: 50px;
+
             background: var(--dark);
 
             border:
@@ -170,10 +184,12 @@
                 );
         }
 
+
         .player,
         .soldier {
             user-select: none;
         }
+
 
         .prototype-label,
         .prototype-state,
@@ -181,6 +197,7 @@
         .wave-label {
             z-index: 10;
         }
+
 
         .prototype-label {
             position: absolute;
@@ -201,6 +218,7 @@
                 0.03em;
         }
 
+
         .prototype-state {
             position: absolute;
             top: 55px;
@@ -216,6 +234,7 @@
 
             opacity: 0.55;
         }
+
 
         .wave-label {
             position: absolute;
@@ -238,6 +257,7 @@
             color:
                 var(--dark);
         }
+
 
         .back-button {
             position: absolute;
@@ -282,6 +302,7 @@
                 transform 0.15s ease;
         }
 
+
         .back-button:hover {
             background:
                 var(--dark);
@@ -290,10 +311,12 @@
                 var(--white);
         }
 
+
         .back-button:active {
             transform:
                 translateY(1px);
         }
+
 
         .back-button:disabled {
             opacity:
@@ -302,6 +325,7 @@
             cursor:
                 default;
         }
+
 
         .transition-overlay {
             position:
@@ -326,6 +350,7 @@
                 opacity 2s ease;
         }
 
+
         .transition-overlay.active {
             opacity:
                 1;
@@ -333,6 +358,7 @@
             pointer-events:
                 all;
         }
+
 
         .game-over {
             position:
@@ -374,6 +400,7 @@
                 opacity 0.35s ease;
         }
 
+
         .game-over.active {
             opacity:
                 1;
@@ -381,6 +408,7 @@
             pointer-events:
                 all;
         }
+
 
         .game-over-title {
             font-family:
@@ -404,6 +432,7 @@
                 0.03em;
         }
 
+
         .game-over-subtitle {
             margin-top:
                 8px;
@@ -424,6 +453,7 @@
                 0.6;
         }
 
+
         .game-over-buttons {
             display:
                 flex;
@@ -434,6 +464,7 @@
             margin-top:
                 32px;
         }
+
 
         .game-over-button {
             border:
@@ -469,6 +500,7 @@
                 pointer;
         }
 
+
         .game-over-button.primary {
             border-color:
                 var(--rojisima);
@@ -476,6 +508,7 @@
             background:
                 var(--rojisima);
         }
+
 
         .game-over-button:hover {
             background:
@@ -485,6 +518,7 @@
                 var(--dark);
         }
 
+
         .game-over-button.primary:hover {
             background:
                 var(--white);
@@ -492,9 +526,10 @@
             color:
                 var(--dark);
         }
-    </style>
-</head>
 
+    </style>
+
+</head>
 
 <body>
 
@@ -505,13 +540,19 @@
 
         <div id="world"></div>
 
+
         <div class="prototype-label">
             HEAVENLY HELL
         </div>
 
-        <div class="prototype-state">
+
+        <div
+            class="prototype-state"
+            id="prototypeState"
+        >
             Prototype // Combat Test
         </div>
+
 
         <div
             class="wave-label"
@@ -519,6 +560,7 @@
         >
             WAVE 1
         </div>
+
 
         <button
             class="back-button"
@@ -582,24 +624,24 @@
                 "world"
             );
 
-
         window.GRID_SIZE = 50;
-
 
         const CHUNK_SIZE = 500;
 
         const LOAD_RADIUS = 2;
 
-
         const loadedChunks =
             new Map();
-
 
         const coverBlocks = [];
 
         window.coverBlocks =
             coverBlocks;
 
+
+        /* ==================================================
+           COBERTURA
+           ================================================== */
 
         const COVER_SHAPES = [
 
@@ -658,6 +700,25 @@
         ];
 
 
+        /*
+         * Distancia mínima entre los rectángulos
+         * de cobertura.
+         *
+         * El Soldier mide 44px de ancho y 58px
+         * de alto, así que 50px de separación
+         * no es suficiente para crear buenos
+         * corredores.
+         */
+
+        const MIN_COVER_GAP = 85;
+
+        const COVER_PLACEMENT_ATTEMPTS = 20;
+
+
+        /* ==================================================
+           HASH
+           ================================================== */
+
         function hashSeed(
             x,
             y
@@ -681,6 +742,10 @@
             return hash >>> 0;
         }
 
+
+        /* ==================================================
+           RANDOM DETERMINISTA
+           ================================================== */
 
         function createRandom(
             seed
@@ -724,6 +789,10 @@
         }
 
 
+        /* ==================================================
+           RANDOM INTEGER
+           ================================================== */
+
         function randomInteger(
             random,
             min,
@@ -737,6 +806,10 @@
 
         }
 
+
+        /* ==================================================
+           SHAPE ALEATORIA
+           ================================================== */
 
         function getRandomShape(
             random
@@ -753,6 +826,10 @@
 
         }
 
+
+        /* ==================================================
+           DISTANCIA
+           ================================================== */
 
         function getDistance(
             x1,
@@ -775,6 +852,60 @@
         }
 
 
+        /* ==================================================
+           INTERSECCIÓN CON MARGEN
+           ================================================== */
+
+        function rectanglesTooClose(
+            a,
+            b,
+            gap
+        ) {
+
+            const aLeft =
+                a.x - gap;
+
+            const aRight =
+                a.x +
+                a.width +
+                gap;
+
+            const aTop =
+                a.y - gap;
+
+            const aBottom =
+                a.y +
+                a.height +
+                gap;
+
+            const bLeft =
+                b.x;
+
+            const bRight =
+                b.x +
+                b.width;
+
+            const bTop =
+                b.y;
+
+            const bBottom =
+                b.y +
+                b.height;
+
+            return (
+                aLeft < bRight &&
+                aRight > bLeft &&
+                aTop < bBottom &&
+                aBottom > bTop
+            );
+
+        }
+
+
+        /* ==================================================
+           CREAR CHUNK
+           ================================================== */
+
         function createChunk(
             chunkX,
             chunkY
@@ -783,13 +914,11 @@
             const key =
                 `${chunkX},${chunkY}`;
 
-
             if (
                 loadedChunks.has(key)
             ) {
                 return;
             }
-
 
             const chunk =
                 document.createElement(
@@ -799,7 +928,6 @@
             chunk.className =
                 "world-chunk";
 
-
             const worldX =
                 chunkX *
                 CHUNK_SIZE;
@@ -808,13 +936,11 @@
                 chunkY *
                 CHUNK_SIZE;
 
-
             chunk.style.left =
                 `${worldX}px`;
 
             chunk.style.top =
                 `${worldY}px`;
-
 
             chunk.dataset.chunkX =
                 chunkX;
@@ -822,18 +948,25 @@
             chunk.dataset.chunkY =
                 chunkY;
 
-
             world.appendChild(
                 chunk
             );
 
 
             const data = {
+
                 key,
+
                 chunkX,
+
                 chunkY,
-                element: chunk,
-                blocks: []
+
+                element:
+                    chunk,
+
+                blocks:
+                    []
+
             };
 
 
@@ -850,6 +983,10 @@
         }
 
 
+        /* ==================================================
+           GENERAR COBERTURA DEL CHUNK
+           ================================================== */
+
         function generateChunkCover(
             chunk
         ) {
@@ -863,11 +1000,21 @@
                 );
 
 
+            /*
+             * Antes:
+             *
+             * 4-8 bloques
+             *
+             * Ahora:
+             *
+             * 2-4 bloques
+             */
+
             const amount =
                 randomInteger(
                     random,
-                    4,
-                    8
+                    2,
+                    4
                 );
 
 
@@ -881,177 +1028,325 @@
                 i++
             ) {
 
-                const shape =
-                    getRandomShape(
-                        random
-                    );
-
-
-                let maxCellX = 0;
-                let maxCellY = 0;
+                let placed =
+                    false;
 
 
                 for (
-                    const cell of shape
+                    let attempt = 0;
+                    attempt <
+                    COVER_PLACEMENT_ATTEMPTS;
+                    attempt++
                 ) {
 
-                    maxCellX =
-                        Math.max(
-                            maxCellX,
-                            cell[0]
+                    const shape =
+                        getRandomShape(
+                            random
                         );
 
-                    maxCellY =
-                        Math.max(
-                            maxCellY,
-                            cell[1]
+
+                    let maxCellX = 0;
+
+                    let maxCellY = 0;
+
+
+                    for (
+                        const cell of shape
+                    ) {
+
+                        maxCellX =
+                            Math.max(
+                                maxCellX,
+                                cell[0]
+                            );
+
+                        maxCellY =
+                            Math.max(
+                                maxCellY,
+                                cell[1]
+                            );
+
+                    }
+
+
+                    const width =
+                        (maxCellX + 1) *
+                        window.GRID_SIZE;
+
+
+                    const height =
+                        (maxCellY + 1) *
+                        window.GRID_SIZE;
+
+
+                    /*
+                     * Dejamos al menos una celda
+                     * de margen respecto al borde.
+                     */
+
+                    const minGridX =
+                        1;
+
+                    const minGridY =
+                        1;
+
+                    const maxGridX =
+                        Math.floor(
+                            (
+                                CHUNK_SIZE -
+                                width -
+                                window.GRID_SIZE
+                            ) /
+                            window.GRID_SIZE
                         );
 
-                }
-
-
-                const width =
-                    (maxCellX + 1) *
-                    window.GRID_SIZE;
-
-                const height =
-                    (maxCellY + 1) *
-                    window.GRID_SIZE;
-
-
-                const maxX =
-                    CHUNK_SIZE -
-                    width -
-                    50;
-
-                const maxY =
-                    CHUNK_SIZE -
-                    height -
-                    50;
-
-
-                if (
-                    maxX <= 50 ||
-                    maxY <= 50
-                ) {
-                    continue;
-                }
-
-
-                const gridX =
-                    randomInteger(
-                        random,
-                        1,
+                    const maxGridY =
                         Math.floor(
-                            maxX /
+                            (
+                                CHUNK_SIZE -
+                                height -
+                                window.GRID_SIZE
+                            ) /
                             window.GRID_SIZE
-                        )
+                        );
+
+
+                    if (
+                        maxGridX <
+                        minGridX ||
+                        maxGridY <
+                        minGridY
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    const gridX =
+                        randomInteger(
+                            random,
+                            minGridX,
+                            maxGridX
+                        );
+
+
+                    const gridY =
+                        randomInteger(
+                            random,
+                            minGridY,
+                            maxGridY
+                        );
+
+
+                    const localX =
+                        gridX *
+                        window.GRID_SIZE;
+
+
+                    const localY =
+                        gridY *
+                        window.GRID_SIZE;
+
+
+                    const worldX =
+                        chunk.chunkX *
+                        CHUNK_SIZE +
+                        localX;
+
+
+                    const worldY =
+                        chunk.chunkY *
+                        CHUNK_SIZE +
+                        localY;
+
+
+                    const block = {
+
+                        element:
+                            null,
+
+                        x:
+                            worldX,
+
+                        y:
+                            worldY,
+
+                        width:
+                            width,
+
+                        height:
+                            height,
+
+                        cells:
+                            shape,
+
+                        chunkKey:
+                            chunk.key
+
+                    };
+
+
+                    /* ==================================================
+                       ZONA SEGURA DEL SPAWN
+                       ================================================== */
+
+                    const distance =
+                        getDistance(
+                            0,
+                            0,
+                            worldX +
+                                width / 2,
+                            worldY +
+                                height / 2
+                        );
+
+
+                    if (
+                        distance < 250
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    /* ==================================================
+                       SEPARACIÓN DE COBERTURAS
+                       ================================================== */
+
+                    let tooClose =
+                        false;
+
+
+                    /*
+                     * Revisamos los bloques ya creados
+                     * de otros chunks y de este mismo chunk.
+                     */
+
+                    for (
+                        const existingBlock
+                        of coverBlocks
+                    ) {
+
+                        if (
+                            rectanglesTooClose(
+                                block,
+                                existingBlock,
+                                MIN_COVER_GAP
+                            )
+                        ) {
+
+                            tooClose =
+                                true;
+
+                            break;
+
+                        }
+
+                    }
+
+
+                    if (
+                        tooClose
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    /*
+                     * También revisamos explícitamente
+                     * los bloques locales.
+                     *
+                     * Esto hace que la intención del
+                     * generador sea clara aunque el bloque
+                     * todavía no haya entrado en coverBlocks.
+                     */
+
+                    for (
+                        const existingBlock
+                        of localBlocks
+                    ) {
+
+                        if (
+                            rectanglesTooClose(
+                                block,
+                                existingBlock,
+                                MIN_COVER_GAP
+                            )
+                        ) {
+
+                            tooClose =
+                                true;
+
+                            break;
+
+                        }
+
+                    }
+
+
+                    if (
+                        tooClose
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    /* ==================================================
+                       CREAR BLOQUE
+                       ================================================== */
+
+                    const element =
+                        createCoverElement(
+                            block
+                        );
+
+
+                    block.element =
+                        element;
+
+
+                    chunk.element.appendChild(
+                        element
                     );
 
 
-                const gridY =
-                    randomInteger(
-                        random,
-                        1,
-                        Math.floor(
-                            maxY /
-                            window.GRID_SIZE
-                        )
-                    );
-
-
-                const localX =
-                    gridX *
-                    window.GRID_SIZE;
-
-                const localY =
-                    gridY *
-                    window.GRID_SIZE;
-
-
-                const worldX =
-                    chunk.chunkX *
-                    CHUNK_SIZE +
-                    localX;
-
-                const worldY =
-                    chunk.chunkY *
-                    CHUNK_SIZE +
-                    localY;
-
-
-                const block = {
-
-                    element: null,
-
-                    x: worldX,
-
-                    y: worldY,
-
-                    width,
-
-                    height,
-
-                    cells: shape,
-
-                    chunkKey:
-                        chunk.key
-
-                };
-
-
-                /*
-                    La zona segura se evalúa
-                    globalmente.
-
-                    Antes solo se aplicaba
-                    al chunk 0,0, por lo que
-                    un bloque de -1,0 podía
-                    aparecer encima del área
-                    inicial.
-                */
-
-                const distance =
-                    getDistance(
-                        0,
-                        0,
-                        worldX +
-                            width / 2,
-                        worldY +
-                            height / 2
-                    );
-
-
-                if (
-                    distance < 250
-                ) {
-                    continue;
-                }
-
-
-                const element =
-                    createCoverElement(
+                    chunk.blocks.push(
                         block
                     );
 
 
-                block.element =
-                    element;
+                    localBlocks.push(
+                        block
+                    );
 
 
-                chunk.element.appendChild(
-                    element
-                );
+                    placed =
+                        true;
+
+                    break;
+
+                }
 
 
-                chunk.blocks.push(
-                    block
-                );
+                /*
+                 * Si no encontramos una posición válida
+                 * después de varios intentos, simplemente
+                 * dejamos ese bloque fuera.
+                 */
 
+                if (
+                    !placed
+                ) {
 
-                localBlocks.push(
-                    block
-                );
+                    continue;
+
+                }
 
             }
 
@@ -1063,6 +1358,10 @@
         }
 
 
+        /* ==================================================
+           CREAR ELEMENTO DE COBERTURA
+           ================================================== */
+
         function createCoverElement(
             block
         ) {
@@ -1071,7 +1370,6 @@
                 document.createElement(
                     "div"
                 );
-
 
             element.className =
                 "cover-block";
@@ -1092,6 +1390,7 @@
                 block.x -
                 chunkX *
                 CHUNK_SIZE;
+
 
             const localY =
                 block.y -
@@ -1120,7 +1419,6 @@
                     document.createElement(
                         "div"
                     );
-
 
                 cellElement.className =
                     "cover-cell";
@@ -1151,6 +1449,10 @@
 
         }
 
+
+        /* ==================================================
+           REMOVER CHUNK
+           ================================================== */
 
         function removeChunk(
             chunk
@@ -1190,6 +1492,10 @@
         }
 
 
+        /* ==================================================
+           CHUNK DEL JUGADOR
+           ================================================== */
+
         function getPlayerChunk() {
 
             const player =
@@ -1224,6 +1530,10 @@
 
         }
 
+
+        /* ==================================================
+           ACTUALIZAR CHUNKS
+           ================================================== */
 
         function updateChunks() {
 
@@ -1287,7 +1597,6 @@
                 if (
                     distanceX >
                     LOAD_RADIUS ||
-
                     distanceY >
                     LOAD_RADIUS
                 ) {
@@ -1303,8 +1612,15 @@
         }
 
 
-        let lastChunkX = null;
-        let lastChunkY = null;
+        /* ==================================================
+           LOOP DE CHUNKS
+           ================================================== */
+
+        let lastChunkX =
+            null;
+
+        let lastChunkY =
+            null;
 
 
         function chunkLoop() {
@@ -1339,6 +1655,10 @@
 
         }
 
+
+        /* ==================================================
+           CÁMARA
+           ================================================== */
 
         function updateCamera() {
 
@@ -1382,6 +1702,10 @@
         }
 
 
+        /* ==================================================
+           VARIABLES GLOBALES
+           ================================================== */
+
         window.game =
             game;
 
@@ -1391,47 +1715,103 @@
         window.gameOver =
             false;
 
-
         window.soldiers =
             [];
 
 
         /*
-            Primero cargamos la instancia
-            de Rojísima.
-
-            Esto es importante porque
-            WaveManager necesita
-            window.rojisima para saber
-            dónde aparecer.
-        */
+         * Generamos el mundo inicial.
+         * Rojísima todavía no existe aquí,
+         * por lo que getPlayerChunk() utiliza
+         * el origen como punto inicial.
+         */
 
         updateChunks();
+
         chunkLoop();
+
         cameraLoop();
 
     </script>
 
 
+    <!-- ==================================================
+         ROJÍSIMA
+         ================================================== -->
+
     <script
         src="../Characters/Rojisima.js"
     ></script>
 
+
+    <!-- ==================================================
+         HEAVENLY HELL
+         ================================================== -->
+
+    <script
+        src="../System/HeavenlyHell.js"
+    ></script>
+
+
+    <!-- ==================================================
+         SINCRONIZAR ESTADO HEAVENLY HELL
+         ================================================== -->
+
+    <script>
+
+        const heavenlyHellEnabled =
+            localStorage.getItem(
+                "heavenlyHellEnabled"
+            ) !== "false";
+
+
+        if (
+            window.heavenlyHell
+        ) {
+
+            window.heavenlyHell.enabled =
+                heavenlyHellEnabled;
+
+        }
+
+
+        const prototypeState =
+            document.getElementById(
+                "prototypeState"
+            );
+
+
+        prototypeState.textContent =
+            heavenlyHellEnabled
+                ? "Prototype // Combat Test // HH ON"
+                : "Prototype // Combat Test // HH OFF";
+
+    </script>
+
+
+    <!-- ==================================================
+         SOLDIER
+         ================================================== -->
+
     <script
         src="../Characters/Soldier.js"
     ></script>
+
+
+    <!-- ==================================================
+         WAVE MANAGER
+         ================================================== -->
 
     <script
         src="../System/WaveManager.js"
     ></script>
 
 
-    <script>
+    <!-- ==================================================
+         GAME CONTROL
+         ================================================== -->
 
-        /*
-            Game Over se prepara antes
-            de iniciar la primera wave.
-        */
+    <script>
 
         const gameOverScreen =
             document.getElementById(
@@ -1457,7 +1837,9 @@
                 if (
                     window.gameOver
                 ) {
+
                     return;
+
                 }
 
 
@@ -1472,9 +1854,9 @@
             };
 
 
-        /*
-            Ahora sí iniciamos WaveManager.
-        */
+        /* ==================================================
+           WAVE MANAGER
+           ================================================== */
 
         const waveManager =
             new WaveManager(
@@ -1489,6 +1871,10 @@
         waveManager.start();
 
 
+        /* ==================================================
+           REINTENTAR
+           ================================================== */
+
         restartButton.addEventListener(
             "click",
             () => {
@@ -1498,6 +1884,10 @@
             }
         );
 
+
+        /* ==================================================
+           GAME OVER -> MENÚ
+           ================================================== */
 
         gameOverMenuButton.addEventListener(
             "click",
@@ -1509,6 +1899,10 @@
             }
         );
 
+
+        /* ==================================================
+           BOTÓN MENÚ
+           ================================================== */
 
         const backButton =
             document.getElementById(
@@ -1533,7 +1927,9 @@
                 if (
                     isTransitioning
                 ) {
+
                     return;
+
                 }
 
 
