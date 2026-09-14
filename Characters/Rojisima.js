@@ -2,16 +2,7 @@ class Rojisima {
 
     constructor(worldElement) {
 
-        // --------------------------------------------------
-        // REFERENCIA AL MUNDO
-        // --------------------------------------------------
-
         this.world = worldElement;
-
-
-        // --------------------------------------------------
-        // CONFIGURACIÓN DEL PERSONAJE
-        // --------------------------------------------------
 
         this.width = 48;
         this.height = 64;
@@ -19,23 +10,30 @@ class Rojisima {
         this.color = "#D61F3A";
         this.borderColor = "#111C20";
 
-        // Velocidad en píxeles por segundo.
         this.speed = 250;
-
-
-        // --------------------------------------------------
-        // VIDA
-        // --------------------------------------------------
 
         this.maxHealth = 100;
         this.health = this.maxHealth;
 
+        this.x = 0;
+        this.y = 0;
 
-        // --------------------------------------------------
-        // CREAR ELEMENTO VISUAL
-        // --------------------------------------------------
+        this.facingX = 1;
+        this.facingY = 0;
 
-        this.element = document.createElement("div");
+        this.attackState = null;
+        this.attackTimer = 0;
+        this.attackHit = false;
+
+        // Dirección congelada durante el ataque.
+        this.attackFacingX = 1;
+        this.attackFacingY = 0;
+
+        // Solo afecta a Rojísima.
+        this.attackSpeed = 0.75;
+
+        this.element =
+            document.createElement("div");
 
         this.element.className = "player";
 
@@ -44,12 +42,8 @@ class Rojisima {
             "Rojísima"
         );
 
-
-        // --------------------------------------------------
-        // ESTILO DEL PERSONAJE
-        // --------------------------------------------------
-
-        this.element.style.position = "absolute";
+        this.element.style.position =
+            "absolute";
 
         this.element.style.width =
             `${this.width}px`;
@@ -69,14 +63,10 @@ class Rojisima {
         this.element.style.boxShadow =
             "0 8px 0 rgba(17, 28, 32, 0.15)";
 
-        // left/top representan el centro.
         this.element.style.transform =
             "translate(-50%, -50%)";
 
-
-        // --------------------------------------------------
-        // BARRA DE VIDA
-        // --------------------------------------------------
+        this.element.style.zIndex = "3";
 
         this.healthBar =
             document.createElement("div");
@@ -114,11 +104,6 @@ class Rojisima {
         this.healthBar.style.overflow =
             "hidden";
 
-
-        // --------------------------------------------------
-        // RELLENO DE LA BARRA
-        // --------------------------------------------------
-
         this.healthFill =
             document.createElement("div");
 
@@ -137,45 +122,19 @@ class Rojisima {
         this.healthFill.style.transition =
             "width 0.15s ease";
 
-
         this.healthBar.appendChild(
             this.healthFill
         );
-
-
-        // La barra pertenece visualmente
-        // a Rojísima.
 
         this.element.appendChild(
             this.healthBar
         );
 
-
-        // --------------------------------------------------
-        // AÑADIR A #WORLD
-        // --------------------------------------------------
+        this.createSpear();
 
         this.world.appendChild(
             this.element
         );
-
-
-        // --------------------------------------------------
-        // POSICIÓN INICIAL
-        // --------------------------------------------------
-
-        this.x =
-            window.PLAYER_SPAWN_X ??
-            window.WORLD_WIDTH / 2;
-
-        this.y =
-            window.PLAYER_SPAWN_Y ??
-            window.WORLD_HEIGHT / 2;
-
-
-        // --------------------------------------------------
-        // INPUT
-        // --------------------------------------------------
 
         this.keys = {
             up: false,
@@ -184,47 +143,19 @@ class Rojisima {
             right: false
         };
 
-
-        // --------------------------------------------------
-        // ANIMACIÓN DE CAMINATA
-        // --------------------------------------------------
-
         this.isMoving = false;
 
         this.bobTime = 0;
-
         this.bobHeight = 3;
-
         this.bobSpeed = 12;
-
-
-        // --------------------------------------------------
-        // TIEMPO
-        // --------------------------------------------------
 
         this.lastTime =
             performance.now();
 
-
-        // --------------------------------------------------
-        // CONFIGURAR CONTROLES
-        // --------------------------------------------------
-
         this.setupInput();
 
-
-        // --------------------------------------------------
-        // POSICIÓN INICIAL
-        // --------------------------------------------------
-
         this.updatePosition();
-
         this.updateHealthBar();
-
-
-        // --------------------------------------------------
-        // INICIAR GAME LOOP
-        // --------------------------------------------------
 
         requestAnimationFrame(
             (time) => this.gameLoop(time)
@@ -232,9 +163,54 @@ class Rojisima {
     }
 
 
-    // --------------------------------------------------
-    // CONFIGURAR TECLADO
-    // --------------------------------------------------
+
+    createSpear() {
+
+        this.spear =
+            document.createElement("div");
+
+        this.spear.style.position =
+            "absolute";
+
+        this.spear.style.width =
+            "90px";
+
+        this.spear.style.height =
+            "5px";
+
+        this.spear.style.left =
+            "50%";
+
+        this.spear.style.top =
+            "50%";
+
+        this.spear.style.background =
+            "#E8E6E3";
+
+        this.spear.style.border =
+            "2px solid #111C20";
+
+        this.spear.style.borderRadius =
+            "999px";
+
+        this.spear.style.transformOrigin =
+            "0 50%";
+
+        this.spear.style.transform =
+            "translateY(-50%) rotate(0deg)";
+
+        this.spear.style.display =
+            "none";
+
+        this.spear.style.zIndex =
+            "4";
+
+        this.element.appendChild(
+            this.spear
+        );
+    }
+
+
 
     setupInput() {
 
@@ -255,7 +231,6 @@ class Rojisima {
 
                         break;
 
-
                     case "s":
                     case "arrowdown":
 
@@ -264,7 +239,6 @@ class Rojisima {
                         event.preventDefault();
 
                         break;
-
 
                     case "a":
                     case "arrowleft":
@@ -275,7 +249,6 @@ class Rojisima {
 
                         break;
 
-
                     case "d":
                     case "arrowright":
 
@@ -284,9 +257,26 @@ class Rojisima {
                         event.preventDefault();
 
                         break;
+
+                    case "j":
+
+                        this.startAttack(
+                            "slash"
+                        );
+
+                        break;
+
+                    case "k":
+
+                        this.startAttack(
+                            "thrust"
+                        );
+
+                        break;
                 }
             }
         );
+
 
 
         window.addEventListener(
@@ -304,7 +294,6 @@ class Rojisima {
 
                         break;
 
-
                     case "s":
                     case "arrowdown":
 
@@ -312,14 +301,12 @@ class Rojisima {
 
                         break;
 
-
                     case "a":
                     case "arrowleft":
 
                         this.keys.left = false;
 
                         break;
-
 
                     case "d":
                     case "arrowright":
@@ -333,91 +320,289 @@ class Rojisima {
     }
 
 
-    // --------------------------------------------------
-    // GAME LOOP
-    // --------------------------------------------------
+
+    startAttack(type) {
+
+        if (this.attackState) {
+            return;
+        }
+
+        this.attackState = type;
+
+        this.attackHit = false;
+
+        // Capturamos la dirección en el instante
+        // en que empieza el ataque.
+        this.attackFacingX =
+            this.facingX;
+
+        this.attackFacingY =
+            this.facingY;
+
+        if (type === "slash") {
+
+            this.attackTimer =
+                0.28 *
+                this.attackSpeed;
+        }
+
+        if (type === "thrust") {
+
+            this.attackTimer =
+                0.38 *
+                this.attackSpeed;
+        }
+    }
+
+
+
+    updateAttack(deltaTime) {
+
+        if (!this.attackState) {
+
+            this.spear.style.display =
+                "none";
+
+            return;
+        }
+
+        this.attackTimer -=
+            deltaTime;
+
+        this.spear.style.display =
+            "block";
+
+        const angle =
+            Math.atan2(
+                this.attackFacingY,
+                this.attackFacingX
+            ) *
+            180 /
+            Math.PI;
+
+
+
+        if (this.attackState === "slash") {
+
+            const duration =
+                0.28 *
+                this.attackSpeed;
+
+            const progress =
+                1 -
+                this.attackTimer /
+                duration;
+
+            const slashAngle =
+                angle -
+                75 +
+                progress *
+                150;
+
+            this.spear.style.width =
+                "72px";
+
+            this.spear.style.transform =
+                `translateY(-50%) rotate(${slashAngle}deg)`;
+
+            if (
+                !this.attackHit &&
+                progress >= 0.35
+            ) {
+
+                this.attackHit = true;
+
+                this.performAttack(
+                    10,
+                    78,
+                    95
+                );
+            }
+        }
+
+
+
+        if (this.attackState === "thrust") {
+
+            const duration =
+                0.38 *
+                this.attackSpeed;
+
+            const progress =
+                1 -
+                this.attackTimer /
+                duration;
+
+            this.spear.style.width =
+                progress < 0.45
+                    ? "70px"
+                    : "125px";
+
+            this.spear.style.transform =
+                `translateY(-50%) rotate(${angle}deg)`;
+
+            if (
+                !this.attackHit &&
+                progress >= 0.45
+            ) {
+
+                this.attackHit = true;
+
+                this.performAttack(
+                    18,
+                    135,
+                    42
+                );
+            }
+        }
+
+
+
+        if (this.attackTimer <= 0) {
+
+            this.attackState = null;
+
+            this.attackHit = false;
+
+            this.spear.style.display =
+                "none";
+        }
+    }
+
+
+
+    performAttack(
+        damage,
+        range,
+        width
+    ) {
+
+        const soldiers =
+            window.soldiers;
+
+        if (!soldiers) {
+            return;
+        }
+
+        for (
+            const soldier of soldiers
+        ) {
+
+            if (soldier.isDead) {
+                continue;
+            }
+
+            const dx =
+                soldier.x - this.x;
+
+            const dy =
+                soldier.y - this.y;
+
+            const distance =
+                Math.sqrt(
+                    dx * dx +
+                    dy * dy
+                );
+
+            if (distance > range) {
+                continue;
+            }
+
+            if (distance === 0) {
+                continue;
+            }
+
+            const normalizedX =
+                dx / distance;
+
+            const normalizedY =
+                dy / distance;
+
+            // El hitbox también usa la dirección
+            // congelada al iniciar el ataque.
+            const dot =
+                normalizedX *
+                    this.attackFacingX +
+                normalizedY *
+                    this.attackFacingY;
+
+            const requiredDot =
+                this.attackState === "slash"
+                    ? 0.25
+                    : 0.65;
+
+            if (
+                dot >= requiredDot
+            ) {
+
+                soldier.takeDamage(
+                    damage
+                );
+            }
+        }
+    }
+
+
 
     gameLoop(currentTime) {
 
         const deltaTime =
-            (currentTime - this.lastTime) / 1000;
+            (currentTime - this.lastTime) /
+            1000;
 
-        this.lastTime = currentTime;
-
-
-        // Evita saltos enormes si la pestaña
-        // estuvo congelada.
+        this.lastTime =
+            currentTime;
 
         const delta =
-            Math.min(deltaTime, 0.05);
-
+            Math.min(
+                deltaTime,
+                0.05
+            );
 
         this.updateMovement(delta);
+
+        this.updateAttack(delta);
 
         this.updateAnimation(delta);
 
         this.updatePosition();
 
-
         requestAnimationFrame(
-            (time) => this.gameLoop(time)
+            (time) =>
+                this.gameLoop(time)
         );
     }
 
 
-    // --------------------------------------------------
-    // MOVIMIENTO
-    // --------------------------------------------------
 
     updateMovement(deltaTime) {
 
         let directionX = 0;
         let directionY = 0;
 
-
-        // --------------------------------------------------
-        // HORIZONTAL
-        // --------------------------------------------------
-
         if (this.keys.left) {
-            directionX -= 1;
+            directionX--;
         }
 
         if (this.keys.right) {
-            directionX += 1;
+            directionX++;
         }
 
-
-        // --------------------------------------------------
-        // VERTICAL
-        // --------------------------------------------------
-
         if (this.keys.up) {
-            directionY -= 1;
+            directionY--;
         }
 
         if (this.keys.down) {
-            directionY += 1;
+            directionY++;
         }
-
-
-        // --------------------------------------------------
-        // ¿ESTÁ MOVIÉNDOSE?
-        // --------------------------------------------------
 
         this.isMoving =
             directionX !== 0 ||
             directionY !== 0;
 
-
         if (!this.isMoving) {
             return;
         }
-
-
-        // --------------------------------------------------
-        // NORMALIZAR DIAGONAL
-        // --------------------------------------------------
 
         const length =
             Math.sqrt(
@@ -428,10 +613,11 @@ class Rojisima {
         directionX /= length;
         directionY /= length;
 
+        this.facingX =
+            directionX;
 
-        // --------------------------------------------------
-        // CALCULAR MOVIMIENTO
-        // --------------------------------------------------
+        this.facingY =
+            directionY;
 
         const movementX =
             directionX *
@@ -443,11 +629,6 @@ class Rojisima {
             this.speed *
             deltaTime;
 
-
-        // --------------------------------------------------
-        // MOVIMIENTO HORIZONTAL
-        // --------------------------------------------------
-
         const nextX =
             this.x + movementX;
 
@@ -458,13 +639,9 @@ class Rojisima {
             )
         ) {
 
-            this.x = nextX;
+            this.x =
+                nextX;
         }
-
-
-        // --------------------------------------------------
-        // MOVIMIENTO VERTICAL
-        // --------------------------------------------------
 
         const nextY =
             this.y + movementY;
@@ -476,120 +653,44 @@ class Rojisima {
             )
         ) {
 
-            this.y = nextY;
+            this.y =
+                nextY;
         }
-
-
-        // --------------------------------------------------
-        // LIMITAR AL MUNDO
-        // --------------------------------------------------
-
-        const worldWidth =
-            window.WORLD_WIDTH ??
-            this.world.clientWidth;
-
-        const worldHeight =
-            window.WORLD_HEIGHT ??
-            this.world.clientHeight;
-
-
-        const halfWidth =
-            this.width / 2;
-
-        const halfHeight =
-            this.height / 2;
-
-
-        this.x = Math.max(
-            halfWidth,
-            Math.min(
-                worldWidth - halfWidth,
-                this.x
-            )
-        );
-
-
-        this.y = Math.max(
-            halfHeight,
-            Math.min(
-                worldHeight - halfHeight,
-                this.y
-            )
-        );
     }
 
 
-    // --------------------------------------------------
-    // COLISIÓN CON COBERTURA
-    // --------------------------------------------------
 
     collidesWithCover(
         centerX,
         centerY
     ) {
 
-        /*
-         * Game.html expone coverBlocks mediante:
-         *
-         * window.coverBlocks
-         *
-         * Cada formación tiene:
-         *
-         * x
-         * y
-         * width
-         * height
-         * cells
-         *
-         * Usamos las coordenadas del mundo directamente.
-         */
-
         const coverBlocks =
             window.coverBlocks;
 
-
-        if (
-            !coverBlocks ||
-            coverBlocks.length === 0
-        ) {
-
+        if (!coverBlocks) {
             return false;
         }
 
-
-        // --------------------------------------------------
-        // HITBOX DE ROJÍSIMA
-        // --------------------------------------------------
-
         const playerLeft =
-            centerX - this.width / 2;
+            centerX -
+            this.width / 2;
 
         const playerRight =
-            centerX + this.width / 2;
+            centerX +
+            this.width / 2;
 
         const playerTop =
-            centerY - this.height / 2;
+            centerY -
+            this.height / 2;
 
         const playerBottom =
-            centerY + this.height / 2;
-
-
-        // --------------------------------------------------
-        // REVISAR CADA FORMACIÓN
-        // --------------------------------------------------
+            centerY +
+            this.height / 2;
 
         for (
             const block of coverBlocks
         ) {
-
-            /*
-             * La formación puede tener espacios vacíos.
-             *
-             * Por eso no usamos solamente block.width
-             * y block.height.
-             *
-             * Revisamos cada celda real.
-             */
 
             for (
                 const cell of block.cells
@@ -613,33 +714,22 @@ class Rojisima {
                     cellTop +
                     window.GRID_SIZE;
 
-
-                // --------------------------------------------------
-                // AABB
-                // --------------------------------------------------
-
                 const collision =
                     playerRight > cellLeft &&
                     playerLeft < cellRight &&
                     playerBottom > cellTop &&
                     playerTop < cellBottom;
 
-
                 if (collision) {
-
                     return true;
                 }
             }
         }
 
-
         return false;
     }
 
 
-    // --------------------------------------------------
-    // ANIMACIÓN DE CAMINATA
-    // --------------------------------------------------
 
     updateAnimation(deltaTime) {
 
@@ -654,17 +744,16 @@ class Rojisima {
             this.bobTime *= 0.8;
         }
 
-
         let bobOffset = 0;
-
 
         if (this.isMoving) {
 
             bobOffset =
-                Math.sin(this.bobTime) *
+                Math.sin(
+                    this.bobTime
+                ) *
                 this.bobHeight;
         }
-
 
         this.element.style.transform =
             `translate(
@@ -674,9 +763,6 @@ class Rojisima {
     }
 
 
-    // --------------------------------------------------
-    // ACTUALIZAR POSICIÓN
-    // --------------------------------------------------
 
     updatePosition() {
 
@@ -688,9 +774,6 @@ class Rojisima {
     }
 
 
-    // --------------------------------------------------
-    // ACTUALIZAR BARRA DE VIDA
-    // --------------------------------------------------
 
     updateHealthBar() {
 
@@ -699,24 +782,22 @@ class Rojisima {
                 0,
                 Math.min(
                     100,
-                    (this.health / this.maxHealth) *
+                    (this.health /
+                        this.maxHealth) *
                     100
                 )
             );
-
 
         this.healthFill.style.width =
             `${percentage}%`;
     }
 
 
-    // --------------------------------------------------
-    // RECIBIR DAÑO
-    // --------------------------------------------------
 
     takeDamage(amount) {
 
-        this.health -= amount;
+        this.health -=
+            amount;
 
         this.health =
             Math.max(
@@ -724,48 +805,32 @@ class Rojisima {
                 this.health
             );
 
-
         this.updateHealthBar();
 
-
-        if (this.health <= 0) {
+        if (
+            this.health <= 0
+        ) {
 
             this.onDeath();
         }
     }
 
 
-    // --------------------------------------------------
-    // MUERTE
-    // --------------------------------------------------
 
     onDeath() {
 
         console.log(
             "Rojísima ha muerto."
         );
-
-        // El sistema de combate llegará después.
     }
 }
 
 
-// --------------------------------------------------
-// INICIALIZACIÓN
-// --------------------------------------------------
-
-// IMPORTANTE:
-//
-// Game.html ya tiene una variable global llamada "world".
-//
-// NO volvemos a declarar:
-// const world = ...
-//
-// Usamos directamente window.world.
-//
-// Así evitamos el:
-// "Identifier 'world' has already been declared"
-// que estaba impidiendo que TODO este archivo arrancara.
 
 const rojisima =
-    new Rojisima(window.world);
+    new Rojisima(
+        window.world
+    );
+
+window.rojisima =
+    rojisima;
