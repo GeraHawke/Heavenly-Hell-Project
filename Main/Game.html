@@ -49,12 +49,10 @@
            ================================================== */
 
         :root {
-
             --rojisima: #D61F3A;
             --bluetech: #4FA9C6;
             --dark: #111C20;
             --white: #E8E6E3;
-
         }
 
 
@@ -63,11 +61,9 @@
            ================================================== */
 
         * {
-
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-
         }
 
 
@@ -76,18 +72,12 @@
            ================================================== */
 
         body {
-
             width: 100vw;
             height: 100vh;
-
             overflow: hidden;
-
             background: var(--bluetech);
-
             font-family: "Saira", sans-serif;
-
             color: var(--dark);
-
         }
 
 
@@ -99,29 +89,22 @@
            ================================================== */
 
         .game {
-
             position: relative;
-
             width: 100%;
             height: 100%;
-
             overflow: hidden;
-
         }
 
 
         /* ==================================================
            MUNDO
 
-           El mundo es mucho más grande que la pantalla.
-
-           Más adelante la cámara moverá este elemento.
+           El mundo es más grande que la pantalla.
+           La cámara mueve visualmente este elemento.
            ================================================== */
 
         #world {
-
             position: absolute;
-
             left: 0;
             top: 0;
 
@@ -131,9 +114,7 @@
             background: var(--bluetech);
 
             transform-origin: 0 0;
-
             will-change: transform;
-
         }
 
 
@@ -142,9 +123,7 @@
            ================================================== */
 
         #worldGrid {
-
             position: absolute;
-
             left: 0;
             top: 0;
 
@@ -152,51 +131,38 @@
             height: 3000px;
 
             z-index: 0;
-
             pointer-events: none;
-
         }
 
 
         /* ==================================================
            PUNTO DE SPAWN
 
-           Temporalmente visible para saber exactamente
-           dónde está el centro del mundo.
-
-           Lo quitaremos después.
+           Temporalmente visible para saber dónde está
+           el centro original del mundo.
            ================================================== */
 
         .spawn-marker {
-
             position: absolute;
 
             width: 20px;
             height: 20px;
 
             border: 3px solid var(--rojisima);
-
             border-radius: 50%;
 
             transform: translate(-50%, -50%);
 
             z-index: 1;
-
             pointer-events: none;
-
         }
 
 
         /* ==================================================
            COBERTURA
-
-           Cada celda individual mide exactamente GRID_SIZE.
-           Las formas completas se construyen con varias
-           de estas celdas.
            ================================================== */
 
         .cover-block {
-
             position: absolute;
 
             background: var(--dark);
@@ -209,18 +175,14 @@
             z-index: 2;
 
             pointer-events: none;
-
         }
 
 
         /* ==================================================
            CELDA DE COBERTURA
-
-           Una celda = un espacio del grid.
            ================================================== */
 
         .cover-cell {
-
             position: absolute;
 
             width: 50px;
@@ -233,7 +195,6 @@
             box-shadow:
                 inset 0 0 0 1px rgba(232, 230, 227, 0.05),
                 0 5px 0 rgba(17, 28, 32, 0.18);
-
         }
 
 
@@ -242,9 +203,7 @@
            ================================================== */
 
         .player {
-
             z-index: 3;
-
         }
 
 
@@ -258,9 +217,7 @@
         .prototype-label,
         .prototype-state,
         .back-button {
-
             z-index: 10;
-
         }
 
 
@@ -269,7 +226,6 @@
            ================================================== */
 
         .prototype-label {
-
             position: absolute;
 
             top: 24px;
@@ -283,12 +239,10 @@
             color: var(--rojisima);
 
             letter-spacing: 0.03em;
-
         }
 
 
         .prototype-state {
-
             position: absolute;
 
             top: 55px;
@@ -297,11 +251,9 @@
             font-size: 0.75rem;
 
             letter-spacing: 0.1em;
-
             text-transform: uppercase;
 
             opacity: 0.55;
-
         }
 
 
@@ -310,7 +262,6 @@
            ================================================== */
 
         .back-button {
-
             position: absolute;
 
             top: 24px;
@@ -319,7 +270,6 @@
             border: 2px solid var(--dark);
 
             background: transparent;
-
             color: var(--dark);
 
             padding: 7px 18px;
@@ -339,32 +289,23 @@
                 background 0.15s ease,
                 color 0.15s ease,
                 transform 0.15s ease;
-
         }
 
 
         .back-button:hover {
-
             background: var(--dark);
-
             color: var(--white);
-
         }
 
 
         .back-button:active {
-
             transform: translateY(1px);
-
         }
 
 
         .back-button:disabled {
-
             opacity: 0.5;
-
             cursor: default;
-
         }
 
 
@@ -373,7 +314,6 @@
            ================================================== */
 
         .transition-overlay {
-
             position: fixed;
 
             inset: 0;
@@ -387,16 +327,12 @@
             z-index: 9999;
 
             transition: opacity 2s ease;
-
         }
 
 
         .transition-overlay.active {
-
             opacity: 1;
-
             pointer-events: all;
-
         }
 
     </style>
@@ -474,9 +410,7 @@
          SISTEMA DEL MUNDO
 
          Primero construimos el mundo.
-
-         Rojisima.js se carga después de que los datos
-         del mundo ya existan.
+         Rojisima.js se carga después.
          ================================================== -->
 
     <script>
@@ -500,6 +434,9 @@
 
         /* ==================================================
            TAMAÑO DEL MUNDO
+
+           Por ahora seguimos usando 3000 x 3000.
+           El mundo infinito será una milestone posterior.
            ================================================== */
 
         const WORLD_WIDTH = 3000;
@@ -520,8 +457,8 @@
         /* ==================================================
            EXPONER DATOS
 
-           Rojisima.js podrá acceder a estos valores
-           mediante window.*
+           Rojisima.js puede acceder a estos valores
+           mediante window.
            ================================================== */
 
         window.WORLD_WIDTH =
@@ -576,10 +513,12 @@
 
 
             gridCanvas.width =
-                WORLD_WIDTH * devicePixelRatio;
+                WORLD_WIDTH *
+                devicePixelRatio;
 
             gridCanvas.height =
-                WORLD_HEIGHT * devicePixelRatio;
+                WORLD_HEIGHT *
+                devicePixelRatio;
 
 
             gridCanvas.style.width =
@@ -590,19 +529,16 @@
 
 
             gridContext.setTransform(
-
                 devicePixelRatio,
                 0,
                 0,
                 devicePixelRatio,
                 0,
                 0
-
             );
 
 
             drawGrid();
-
         }
 
 
@@ -613,12 +549,10 @@
         function drawGrid() {
 
             gridContext.clearRect(
-
                 0,
                 0,
                 WORLD_WIDTH,
                 WORLD_HEIGHT
-
             );
 
 
@@ -634,13 +568,9 @@
             /* Líneas verticales */
 
             for (
-
                 let x = 0;
-
                 x <= WORLD_WIDTH;
-
                 x += GRID_SIZE
-
             ) {
 
                 gridContext.beginPath();
@@ -656,20 +586,15 @@
                 );
 
                 gridContext.stroke();
-
             }
 
 
             /* Líneas horizontales */
 
             for (
-
                 let y = 0;
-
                 y <= WORLD_HEIGHT;
-
                 y += GRID_SIZE
-
             ) {
 
                 gridContext.beginPath();
@@ -685,12 +610,10 @@
                 );
 
                 gridContext.stroke();
-
             }
 
 
             gridContext.globalAlpha = 1;
-
         }
 
 
@@ -717,12 +640,6 @@
 
         /* ==================================================
            CONFIGURACIÓN DE COBERTURA
-
-           La cobertura ya no utiliza rectángulos
-           aleatorios.
-
-           Cada formación está compuesta por celdas
-           de 50x50 alineadas al grid.
            ================================================== */
 
         const COVER_CONFIG = {
@@ -738,27 +655,11 @@
             radioSpawnY: 550,
 
             maxIntentos: 100
-
         };
 
 
         /* ==================================================
            FORMAS DE COBERTURA
-
-           Cada pareja [x, y] representa una celda.
-
-           Ejemplo:
-
-           [0, 0]
-           [1, 0]
-           [0, 1]
-           [1, 1]
-
-           produce un cuadrado de 2x2.
-
-           No necesitamos convertir esto en Tetris
-           literalmente. Son simplemente formas
-           construidas sobre el mismo lenguaje espacial.
            ================================================== */
 
         const COVER_SHAPES = [
@@ -843,14 +744,6 @@
 
         /* ==================================================
            LISTA DE COBERTURA
-
-           Esta lista será importante después para:
-
-           - colisión del jugador
-           - proyectiles
-           - línea de visión
-           - cobertura de Soldier
-           - Heavenly Hell
            ================================================== */
 
         const coverBlocks = [];
@@ -863,15 +756,15 @@
            RANDOM
            ================================================== */
 
-        function randomInteger(min, max) {
+        function randomInteger(
+            min,
+            max
+        ) {
 
             return Math.floor(
-
                 Math.random() *
                 (max - min + 1)
-
             ) + min;
-
         }
 
 
@@ -880,12 +773,10 @@
            ================================================== */
 
         function getDistance(
-
             x1,
             y1,
             x2,
             y2
-
         ) {
 
             const dx =
@@ -896,12 +787,9 @@
 
 
             return Math.sqrt(
-
                 dx * dx +
                 dy * dy
-
             );
-
         }
 
 
@@ -919,15 +807,11 @@
 
 
             return COVER_SHAPES[index];
-
         }
 
 
         /* ==================================================
            CREAR DATOS DE UNA FORMACIÓN
-
-           La posición inicial siempre cae exactamente
-           sobre el grid.
            ================================================== */
 
         function createCoverBlock() {
@@ -936,13 +820,15 @@
                 getRandomCoverShape();
 
 
-            /* Determinar tamaño de la formación */
+            /* Determinar tamaño */
 
             let maxCellX = 0;
             let maxCellY = 0;
 
 
-            for (const cell of shape) {
+            for (
+                const cell of shape
+            ) {
 
                 maxCellX =
                     Math.max(
@@ -950,12 +836,12 @@
                         cell[0]
                     );
 
+
                 maxCellY =
                     Math.max(
                         maxCellY,
                         cell[1]
                     );
-
             }
 
 
@@ -970,77 +856,56 @@
 
 
             /*
-
                 Elegimos coordenadas de grid.
 
-                Esto evita posiciones como:
-
-                x = 873.41
-
-                porque nadie necesita cobertura
-                que parece haber sido colocada por
-                un borracho con una regla.
-
+                Esto mantiene todas las coberturas
+                alineadas al mismo lenguaje espacial.
             */
 
-            const minGridX = Math.floor(
-
-                Math.max(
-
-                    100,
-
-                    PLAYER_SPAWN_X -
-                    COVER_CONFIG.radioSpawnX
-
-                ) / GRID_SIZE
-
-            );
+            const minGridX =
+                Math.floor(
+                    Math.max(
+                        100,
+                        PLAYER_SPAWN_X -
+                        COVER_CONFIG.radioSpawnX
+                    ) / GRID_SIZE
+                );
 
 
-            const maxGridX = Math.floor(
+            const maxGridX =
+                Math.floor(
+                    Math.min(
+                        WORLD_WIDTH -
+                        width -
+                        100,
 
-                Math.min(
-
-                    WORLD_WIDTH -
-                    width -
-                    100,
-
-                    PLAYER_SPAWN_X +
-                    COVER_CONFIG.radioSpawnX
-
-                ) / GRID_SIZE
-
-            );
+                        PLAYER_SPAWN_X +
+                        COVER_CONFIG.radioSpawnX
+                    ) / GRID_SIZE
+                );
 
 
-            const minGridY = Math.floor(
-
-                Math.max(
-
-                    100,
-
-                    PLAYER_SPAWN_Y -
-                    COVER_CONFIG.radioSpawnY
-
-                ) / GRID_SIZE
-
-            );
+            const minGridY =
+                Math.floor(
+                    Math.max(
+                        100,
+                        PLAYER_SPAWN_Y -
+                        COVER_CONFIG.radioSpawnY
+                    ) / GRID_SIZE
+                );
 
 
-            const maxGridY = Math.floor(
+            const maxGridY =
+                Math.floor(
+                    Math.min(
+                        WORLD_HEIGHT -
+                        height -
+                        100,
 
-                Math.min(
-
-                    WORLD_HEIGHT -
-                    height -
-                    100,
-
-                    PLAYER_SPAWN_Y +
-                    COVER_CONFIG.radioSpawnY
-
-                ) / GRID_SIZE
-
-            );
+                        PLAYER_SPAWN_Y +
+                        COVER_CONFIG.radioSpawnY
+                    ) / GRID_SIZE
+                );
 
 
             const gridX =
@@ -1078,9 +943,7 @@
                 height: height,
 
                 cells: shape
-
             };
-
         }
 
 
@@ -1088,12 +951,11 @@
            COMPROBAR SI UNA FORMACIÓN PUEDE COLOCARSE
            ================================================== */
 
-        function canPlaceCover(newBlock) {
+        function canPlaceCover(
+            newBlock
+        ) {
 
-
-            /* ==============================================
-               CENTRO DE LA NUEVA FORMACIÓN
-               ============================================== */
+            /* Centro de la nueva formación */
 
             const newCenterX =
                 newBlock.x +
@@ -1105,48 +967,30 @@
                 newBlock.height / 2;
 
 
-            /* ==============================================
-               MANTENER LIBRE EL SPAWN
-               ============================================== */
+            /* Mantener libre el spawn */
 
             const distanceToSpawn =
                 getDistance(
-
                     PLAYER_SPAWN_X,
                     PLAYER_SPAWN_Y,
-
                     newCenterX,
                     newCenterY
-
                 );
 
 
             if (
-
                 distanceToSpawn <
                 COVER_CONFIG.distanciaSpawn
-
             ) {
 
                 return false;
-
             }
 
 
-            /* ==============================================
-               SEPARAR FORMACIONES
-
-               Por ahora usamos distancia entre centros.
-
-               Más adelante podremos cambiar esto por
-               intersección AABB real si necesitamos
-               layouts más compactos.
-               ============================================== */
+            /* Separar formaciones */
 
             for (
-
                 const block of coverBlocks
-
             ) {
 
                 const blockCenterX =
@@ -1161,44 +1005,34 @@
 
                 const distance =
                     getDistance(
-
                         newCenterX,
                         newCenterY,
-
                         blockCenterX,
                         blockCenterY
-
                     );
 
 
                 if (
-
                     distance <
                     COVER_CONFIG.distanciaMinima
-
                 ) {
 
                     return false;
-
                 }
-
             }
 
 
             return true;
-
         }
 
 
         /* ==================================================
            CREAR ELEMENTO VISUAL
-
-           La formación completa es un contenedor.
-
-           Dentro colocamos las celdas individuales.
            ================================================== */
 
-        function createCoverElement(block) {
+        function createCoverElement(
+            block
+        ) {
 
             const element =
                 document.createElement("div");
@@ -1224,22 +1058,16 @@
                 `${block.height}px`;
 
 
-            /*
-                No usamos pointer-events porque la cobertura
-                será manejada por el sistema de colisiones.
-            */
-
-
             /* Crear cada celda */
 
             for (
-
                 const cell of block.cells
-
             ) {
 
                 const cellElement =
-                    document.createElement("div");
+                    document.createElement(
+                        "div"
+                    );
 
 
                 cellElement.className =
@@ -1257,12 +1085,10 @@
                 element.appendChild(
                     cellElement
                 );
-
             }
 
 
             return element;
-
         }
 
 
@@ -1281,42 +1107,32 @@
             */
 
             document
-                .querySelectorAll(".cover-block")
+                .querySelectorAll(
+                    ".cover-block"
+                )
                 .forEach(
-
                     element => {
-
                         element.remove();
-
                     }
-
                 );
 
 
-            /* Crear las formaciones */
+            /* Crear formaciones */
 
             for (
-
                 let i = 0;
-
                 i < COVER_CONFIG.cantidad;
-
                 i++
-
             ) {
 
                 let placed = false;
 
 
                 for (
-
                     let attempt = 0;
-
                     attempt <
                     COVER_CONFIG.maxIntentos;
-
                     attempt++
-
                 ) {
 
                     const block =
@@ -1324,18 +1140,19 @@
 
 
                     if (
-
-                        !canPlaceCover(block)
-
+                        !canPlaceCover(
+                            block
+                        )
                     ) {
 
                         continue;
-
                     }
 
 
                     const element =
-                        createCoverElement(block);
+                        createCoverElement(
+                            block
+                        );
 
 
                     block.element =
@@ -1355,23 +1172,17 @@
                     placed = true;
 
                     break;
-
                 }
 
 
                 if (!placed) {
 
                     console.warn(
-
                         "No se pudo colocar cobertura:",
                         i
-
                     );
-
                 }
-
             }
-
         }
 
 
@@ -1383,28 +1194,79 @@
 
 
         /* ==================================================
-           POSICIÓN INICIAL DEL MUNDO
+           CÁMARA
 
-           Todavía NO es la cámara de seguimiento.
+           La cámara sigue a Rojísima.
 
-           Simplemente colocamos el mundo de manera que
-           el spawn quede en el centro de la pantalla.
+           Rojísima mantiene su posición REAL dentro
+           del mundo.
 
-           Cuando Rojisima.js pase a utilizar coordenadas
-           del mundo, aquí reemplazaremos esto por la cámara.
+           La cámara solamente transforma #world para
+           que Rojísima aparezca aproximadamente en
+           el centro de la pantalla.
            ================================================== */
 
-        function centerWorldOnSpawn() {
+        function updateCamera() {
+
+            /*
+                Rojisima.js se carga después de este script.
+
+                Por eso puede ocurrir que en los primeros
+                frames todavía no exista .player.
+            */
+
+            const player =
+                world.querySelector(
+                    ".player"
+                );
+
+
+            if (!player) {
+                return;
+            }
+
+
+            /*
+                offsetLeft y offsetTop representan la
+                posición del jugador DENTRO de #world.
+
+                No usamos getBoundingClientRect()
+                porque #world está siendo transformado
+                por la propia cámara.
+            */
+
+            const playerX =
+                player.offsetLeft +
+                player.offsetWidth / 2;
+
+
+            const playerY =
+                player.offsetTop +
+                player.offsetHeight / 2;
+
+
+            /*
+                Queremos que el jugador aparezca
+                en el centro de la pantalla.
+            */
 
             const cameraX =
-                PLAYER_SPAWN_X -
+                playerX -
                 window.innerWidth / 2;
 
 
             const cameraY =
-                PLAYER_SPAWN_Y -
+                playerY -
                 window.innerHeight / 2;
 
+
+            /*
+                Movemos visualmente todo el mundo.
+
+                Rojísima no se mueve al centro.
+
+                El mundo se mueve alrededor de ella.
+            */
 
             world.style.transform =
                 `translate3d(
@@ -1412,11 +1274,24 @@
                     ${-cameraY}px,
                     0
                 )`;
-
         }
 
 
-        centerWorldOnSpawn();
+        /* ==================================================
+           LOOP DE CÁMARA
+           ================================================== */
+
+        function cameraLoop() {
+
+            updateCamera();
+
+            requestAnimationFrame(
+                cameraLoop
+            );
+        }
+
+
+        cameraLoop();
 
 
         /* ==================================================
@@ -1436,25 +1311,19 @@
         /* ==================================================
            RESIZE
 
-           Por ahora solo redibujamos el grid y volvemos
-           a centrar el mundo en el spawn.
-
-           Cuando exista la cámara real, esta función
-           cambiará.
+           Ahora que existe cámara real, al cambiar
+           el tamaño de la ventana simplemente redibujamos
+           el grid y actualizamos la cámara.
            ================================================== */
 
         window.addEventListener(
-
             "resize",
-
             () => {
 
                 resizeGrid();
 
-                centerWorldOnSpawn();
-
+                updateCamera();
             }
-
         );
 
     </script>
@@ -1465,11 +1334,8 @@
 
          Se carga DESPUÉS de que el mundo ya existe.
 
-         IMPORTANTE:
-         El movimiento y la animación de Rojísima siguen
-         estando dentro de Rojisima.js.
-
-         Este archivo todavía no intenta modificar eso.
+         El movimiento y la animación de Rojísima
+         permanecen dentro de Rojisima.js.
          ================================================== -->
 
     <script
@@ -1479,9 +1345,6 @@
 
     <!-- ==================================================
          SISTEMA HEAVENLY HELL
-
-         Lo dejamos cargado, pero no modificamos todavía
-         su funcionamiento.
          ================================================== -->
 
     <script
@@ -1511,15 +1374,11 @@
 
 
         backButton.addEventListener(
-
             "click",
-
             async () => {
 
                 if (isTransitioning) {
-
                     return;
-
                 }
 
 
@@ -1534,27 +1393,19 @@
 
 
                 await new Promise(
-
                     resolve => {
 
                         setTimeout(
-
                             resolve,
-
                             2000
-
                         );
-
                     }
-
                 );
 
 
                 window.location.href =
                     "Menu.html";
-
             }
-
         );
 
     </script>
