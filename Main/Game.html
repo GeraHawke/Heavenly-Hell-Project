@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -12,7 +10,6 @@
     >
 
     <title>Heavenly Hell // Game</title>
-
 
     <link
         rel="preconnect"
@@ -35,102 +32,62 @@
         rel="stylesheet"
     >
 
-
     <style>
-
         :root {
-
             --rojisima: #D61F3A;
             --bluetech: #4FA9C6;
             --dark: #111C20;
             --white: #E8E6E3;
         }
 
-
         * {
-
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-
         body {
-
             width: 100vw;
             height: 100vh;
-
             overflow: hidden;
-
-            background:
-                var(--bluetech);
-
-            font-family:
-                "Saira",
-                sans-serif;
-
-            color:
-                var(--dark);
+            background: var(--bluetech);
+            font-family: "Saira", sans-serif;
+            color: var(--dark);
         }
-
 
         .game {
-
             position: relative;
-
             width: 100%;
             height: 100%;
-
             overflow: hidden;
         }
 
-
         #world {
-
             position: absolute;
-
             left: 0;
             top: 0;
-
             width: 0;
             height: 0;
-
             transform-origin: 0 0;
-
             will-change: transform;
         }
 
-
-        /* CHUNKS */
-
         .world-chunk {
-
             position: absolute;
-
             width: 500px;
             height: 500px;
-
-            background:
-                var(--bluetech);
-
+            background: var(--bluetech);
             overflow: hidden;
-
             z-index: 0;
         }
 
-
         .world-chunk::after {
-
             content: "";
-
             position: absolute;
-
             inset: 0;
-
             pointer-events: none;
 
             background-image:
-
                 linear-gradient(
                     to right,
                     rgba(
@@ -141,7 +98,6 @@
                     ) 1px,
                     transparent 1px
                 ),
-
                 linear-gradient(
                     to bottom,
                     rgba(
@@ -153,19 +109,12 @@
                     transparent 1px
                 );
 
-            background-size:
-                50px 50px;
+            background-size: 50px 50px;
         }
 
-
-        /* COBERTURA */
-
         .cover-block {
-
             position: absolute;
-
-            background:
-                var(--dark);
+            background: var(--dark);
 
             border:
                 2px solid
@@ -186,20 +135,14 @@
                 );
 
             z-index: 2;
-
             pointer-events: none;
         }
 
-
         .cover-cell {
-
             position: absolute;
-
             width: 50px;
             height: 50px;
-
-            background:
-                var(--dark);
+            background: var(--dark);
 
             border:
                 2px solid
@@ -211,7 +154,6 @@
                 );
 
             box-shadow:
-
                 inset 0 0 0 1px
                 rgba(
                     232,
@@ -219,7 +161,6 @@
                     227,
                     0.05
                 ),
-
                 0 5px 0
                 rgba(
                     17,
@@ -229,30 +170,20 @@
                 );
         }
 
-
-        /* PERSONAJES */
-
         .player,
         .soldier {
-
             user-select: none;
         }
 
-
-        /* UI */
-
         .prototype-label,
         .prototype-state,
-        .back-button {
-
+        .back-button,
+        .wave-label {
             z-index: 10;
         }
 
-
         .prototype-label {
-
             position: absolute;
-
             top: 24px;
             left: 28px;
 
@@ -260,11 +191,8 @@
                 "Clash Display",
                 sans-serif;
 
-            font-size:
-                1.2rem;
-
-            font-weight:
-                600;
+            font-size: 1.2rem;
+            font-weight: 600;
 
             color:
                 var(--rojisima);
@@ -273,16 +201,12 @@
                 0.03em;
         }
 
-
         .prototype-state {
-
             position: absolute;
-
             top: 55px;
             left: 29px;
 
-            font-size:
-                0.75rem;
+            font-size: 0.75rem;
 
             letter-spacing:
                 0.1em;
@@ -290,15 +214,33 @@
             text-transform:
                 uppercase;
 
-            opacity:
-                0.55;
+            opacity: 0.55;
         }
 
+        .wave-label {
+            position: absolute;
+            top: 28px;
+            left: 50%;
+
+            transform:
+                translateX(-50%);
+
+            font-family:
+                "Clash Display",
+                sans-serif;
+
+            font-size: 1rem;
+            font-weight: 600;
+
+            letter-spacing:
+                0.12em;
+
+            color:
+                var(--dark);
+        }
 
         .back-button {
-
             position: absolute;
-
             top: 24px;
             right: 28px;
 
@@ -340,9 +282,7 @@
                 transform 0.15s ease;
         }
 
-
         .back-button:hover {
-
             background:
                 var(--dark);
 
@@ -350,16 +290,12 @@
                 var(--white);
         }
 
-
         .back-button:active {
-
             transform:
                 translateY(1px);
         }
 
-
         .back-button:disabled {
-
             opacity:
                 0.5;
 
@@ -367,9 +303,7 @@
                 default;
         }
 
-
         .transition-overlay {
-
             position:
                 fixed;
 
@@ -392,9 +326,7 @@
                 opacity 2s ease;
         }
 
-
         .transition-overlay.active {
-
             opacity:
                 1;
 
@@ -402,13 +334,169 @@
                 all;
         }
 
-    </style>
+        .game-over {
+            position:
+                fixed;
 
+            inset:
+                0;
+
+            display:
+                flex;
+
+            flex-direction:
+                column;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            background:
+                rgba(
+                    17,
+                    28,
+                    32,
+                    0.94
+                );
+
+            opacity:
+                0;
+
+            pointer-events:
+                none;
+
+            z-index:
+                9000;
+
+            transition:
+                opacity 0.35s ease;
+        }
+
+        .game-over.active {
+            opacity:
+                1;
+
+            pointer-events:
+                all;
+        }
+
+        .game-over-title {
+            font-family:
+                "Clash Display",
+                sans-serif;
+
+            font-size:
+                clamp(
+                    3rem,
+                    8vw,
+                    6rem
+                );
+
+            font-weight:
+                700;
+
+            color:
+                var(--rojisima);
+
+            letter-spacing:
+                0.03em;
+        }
+
+        .game-over-subtitle {
+            margin-top:
+                8px;
+
+            color:
+                var(--white);
+
+            font-size:
+                0.8rem;
+
+            letter-spacing:
+                0.16em;
+
+            text-transform:
+                uppercase;
+
+            opacity:
+                0.6;
+        }
+
+        .game-over-buttons {
+            display:
+                flex;
+
+            gap:
+                12px;
+
+            margin-top:
+                32px;
+        }
+
+        .game-over-button {
+            border:
+                2px solid
+                var(--white);
+
+            background:
+                transparent;
+
+            color:
+                var(--white);
+
+            padding:
+                9px 22px;
+
+            border-radius:
+                999px;
+
+            font-family:
+                "Saira",
+                sans-serif;
+
+            font-size:
+                0.75rem;
+
+            font-weight:
+                600;
+
+            letter-spacing:
+                0.08em;
+
+            cursor:
+                pointer;
+        }
+
+        .game-over-button.primary {
+            border-color:
+                var(--rojisima);
+
+            background:
+                var(--rojisima);
+        }
+
+        .game-over-button:hover {
+            background:
+                var(--white);
+
+            color:
+                var(--dark);
+        }
+
+        .game-over-button.primary:hover {
+            background:
+                var(--white);
+
+            color:
+                var(--dark);
+        }
+    </style>
 </head>
 
 
 <body>
-
 
     <main
         class="game"
@@ -417,31 +505,63 @@
 
         <div id="world"></div>
 
-
         <div class="prototype-label">
-
             HEAVENLY HELL
-
         </div>
-
 
         <div class="prototype-state">
-
             Prototype // Combat Test
-
         </div>
 
+        <div
+            class="wave-label"
+            id="waveLabel"
+        >
+            WAVE 1
+        </div>
 
         <button
             class="back-button"
             id="backButton"
         >
-
             MENÚ
-
         </button>
 
     </main>
+
+
+    <div
+        class="game-over"
+        id="gameOver"
+    >
+
+        <div class="game-over-title">
+            GAME OVER
+        </div>
+
+        <div class="game-over-subtitle">
+            Rojísima ha caído
+        </div>
+
+        <div class="game-over-buttons">
+
+            <button
+                class="game-over-button primary"
+                id="restartButton"
+            >
+                REINTENTAR
+            </button>
+
+            <button
+                class="game-over-button"
+                id="gameOverMenuButton"
+            >
+                MENÚ
+            </button>
+
+        </div>
+
+    </div>
 
 
     <div
@@ -463,23 +583,19 @@
             );
 
 
-        window.GRID_SIZE =
-            50;
+        window.GRID_SIZE = 50;
 
 
-        const CHUNK_SIZE =
-            500;
+        const CHUNK_SIZE = 500;
 
-        const LOAD_RADIUS =
-            2;
+        const LOAD_RADIUS = 2;
 
 
         const loadedChunks =
             new Map();
 
 
-        const coverBlocks =
-            [];
+        const coverBlocks = [];
 
         window.coverBlocks =
             coverBlocks;
@@ -538,6 +654,7 @@
                 [1, 1],
                 [2, 1]
             ]
+
         ];
 
 
@@ -601,7 +718,9 @@
                         (t >>> 14)
                     ) >>> 0
                 ) / 4294967296;
+
             };
+
         }
 
 
@@ -615,6 +734,7 @@
                 random() *
                 (max - min + 1)
             ) + min;
+
         }
 
 
@@ -630,6 +750,7 @@
                 );
 
             return COVER_SHAPES[index];
+
         }
 
 
@@ -650,6 +771,7 @@
                 dx * dx +
                 dy * dy
             );
+
         }
 
 
@@ -665,7 +787,6 @@
             if (
                 loadedChunks.has(key)
             ) {
-
                 return;
             }
 
@@ -708,15 +829,10 @@
 
 
             const data = {
-
                 key,
-
                 chunkX,
                 chunkY,
-
-                element:
-                    chunk,
-
+                element: chunk,
                 blocks: []
             };
 
@@ -730,6 +846,7 @@
             generateChunkCover(
                 data
             );
+
         }
 
 
@@ -770,11 +887,8 @@
                     );
 
 
-                let maxCellX =
-                    0;
-
-                let maxCellY =
-                    0;
+                let maxCellX = 0;
+                let maxCellY = 0;
 
 
                 for (
@@ -792,6 +906,7 @@
                             maxCellY,
                             cell[1]
                         );
+
                 }
 
 
@@ -819,7 +934,6 @@
                     maxX <= 50 ||
                     maxY <= 50
                 ) {
-
                     continue;
                 }
 
@@ -871,39 +985,47 @@
                     element: null,
 
                     x: worldX,
+
                     y: worldY,
 
                     width,
+
                     height,
 
                     cells: shape,
 
                     chunkKey:
                         chunk.key
+
                 };
 
 
+                /*
+                    La zona segura se evalúa
+                    globalmente.
+
+                    Antes solo se aplicaba
+                    al chunk 0,0, por lo que
+                    un bloque de -1,0 podía
+                    aparecer encima del área
+                    inicial.
+                */
+
+                const distance =
+                    getDistance(
+                        0,
+                        0,
+                        worldX +
+                            width / 2,
+                        worldY +
+                            height / 2
+                    );
+
+
                 if (
-                    chunk.chunkX === 0 &&
-                    chunk.chunkY === 0
+                    distance < 250
                 ) {
-
-                    const distance =
-                        getDistance(
-                            0,
-                            0,
-                            worldX +
-                                width / 2,
-                            worldY +
-                                height / 2
-                        );
-
-                    if (
-                        distance < 250
-                    ) {
-
-                        continue;
-                    }
+                    continue;
                 }
 
 
@@ -930,12 +1052,14 @@
                 localBlocks.push(
                     block
                 );
+
             }
 
 
             coverBlocks.push(
                 ...localBlocks
             );
+
         }
 
 
@@ -947,6 +1071,7 @@
                 document.createElement(
                     "div"
                 );
+
 
             element.className =
                 "cover-block";
@@ -996,24 +1121,34 @@
                         "div"
                     );
 
+
                 cellElement.className =
                     "cover-cell";
 
+
                 cellElement.style.left =
-                    `${cell[0] *
-                        window.GRID_SIZE}px`;
+                    `${
+                        cell[0] *
+                        window.GRID_SIZE
+                    }px`;
+
 
                 cellElement.style.top =
-                    `${cell[1] *
-                        window.GRID_SIZE}px`;
+                    `${
+                        cell[1] *
+                        window.GRID_SIZE
+                    }px`;
+
 
                 element.appendChild(
                     cellElement
                 );
+
             }
 
 
             return element;
+
         }
 
 
@@ -1042,13 +1177,16 @@
                         index,
                         1
                     );
+
                 }
+
             }
 
 
             loadedChunks.delete(
                 chunk.key
             );
+
         }
 
 
@@ -1064,6 +1202,7 @@
                     x: 0,
                     y: 0
                 };
+
             }
 
 
@@ -1080,7 +1219,9 @@
                         player.y /
                         CHUNK_SIZE
                     )
+
             };
+
         }
 
 
@@ -1118,7 +1259,9 @@
                         x,
                         y
                     );
+
                 }
+
             }
 
 
@@ -1132,6 +1275,7 @@
                         chunk.chunkX -
                         current.x
                     );
+
 
                 const distanceY =
                     Math.abs(
@@ -1151,16 +1295,16 @@
                     removeChunk(
                         chunk
                     );
+
                 }
+
             }
+
         }
 
 
-        let lastChunkX =
-            null;
-
-        let lastChunkY =
-            null;
+        let lastChunkX = null;
+        let lastChunkY = null;
 
 
         function chunkLoop() {
@@ -1183,13 +1327,16 @@
                 lastChunkY =
                     current.y;
 
+
                 updateChunks();
+
             }
 
 
             requestAnimationFrame(
                 chunkLoop
             );
+
         }
 
 
@@ -1208,6 +1355,7 @@
                 player.x -
                 window.innerWidth / 2;
 
+
             const cameraY =
                 player.y -
                 window.innerHeight / 2;
@@ -1219,6 +1367,7 @@
                     ${-cameraY}px,
                     0
                 )`;
+
         }
 
 
@@ -1229,6 +1378,7 @@
             requestAnimationFrame(
                 cameraLoop
             );
+
         }
 
 
@@ -1238,11 +1388,26 @@
         window.world =
             world;
 
+        window.gameOver =
+            false;
+
+
+        window.soldiers =
+            [];
+
+
+        /*
+            Primero cargamos la instancia
+            de Rojísima.
+
+            Esto es importante porque
+            WaveManager necesita
+            window.rojisima para saber
+            dónde aparecer.
+        */
 
         updateChunks();
-
         chunkLoop();
-
         cameraLoop();
 
     </script>
@@ -1252,31 +1417,96 @@
         src="../Characters/Rojisima.js"
     ></script>
 
-
     <script
         src="../Characters/Soldier.js"
     ></script>
 
-
-    <!-- Heavenly Hell queda desactivado durante esta milestone. -->
+    <script
+        src="../System/WaveManager.js"
+    ></script>
 
 
     <script>
 
-        window.soldiers =
-            [];
+        /*
+            Game Over se prepara antes
+            de iniciar la primera wave.
+        */
 
-
-        const firstSoldier =
-            new Soldier(
-                window.world,
-                350,
-                0
+        const gameOverScreen =
+            document.getElementById(
+                "gameOver"
             );
 
 
-        window.soldiers.push(
-            firstSoldier
+        const restartButton =
+            document.getElementById(
+                "restartButton"
+            );
+
+
+        const gameOverMenuButton =
+            document.getElementById(
+                "gameOverMenuButton"
+            );
+
+
+        window.triggerGameOver =
+            function () {
+
+                if (
+                    window.gameOver
+                ) {
+                    return;
+                }
+
+
+                window.gameOver =
+                    true;
+
+
+                gameOverScreen.classList.add(
+                    "active"
+                );
+
+            };
+
+
+        /*
+            Ahora sí iniciamos WaveManager.
+        */
+
+        const waveManager =
+            new WaveManager(
+                window.world
+            );
+
+
+        window.waveManager =
+            waveManager;
+
+
+        waveManager.start();
+
+
+        restartButton.addEventListener(
+            "click",
+            () => {
+
+                window.location.reload();
+
+            }
+        );
+
+
+        gameOverMenuButton.addEventListener(
+            "click",
+            () => {
+
+                window.location.href =
+                    "Menu.html";
+
+            }
         );
 
 
@@ -1303,13 +1533,13 @@
                 if (
                     isTransitioning
                 ) {
-
                     return;
                 }
 
 
                 isTransitioning =
                     true;
+
 
                 backButton.disabled =
                     true;
@@ -1327,12 +1557,14 @@
                             resolve,
                             2000
                         );
+
                     }
                 );
 
 
                 window.location.href =
                     "Menu.html";
+
             }
         );
 

@@ -15,6 +15,8 @@ class Rojisima {
         this.maxHealth = 100;
         this.health = this.maxHealth;
 
+        this.isDead = false;
+
         this.x = 0;
         this.y = 0;
 
@@ -25,17 +27,19 @@ class Rojisima {
         this.attackTimer = 0;
         this.attackHit = false;
 
-        // Dirección congelada durante el ataque.
         this.attackFacingX = 1;
         this.attackFacingY = 0;
 
-        // Solo afecta a Rojísima.
         this.attackSpeed = 0.75;
 
-        this.element =
-            document.createElement("div");
 
-        this.element.className = "player";
+        this.element =
+            document.createElement(
+                "div"
+            );
+
+        this.element.className =
+            "player";
 
         this.element.setAttribute(
             "aria-label",
@@ -66,10 +70,14 @@ class Rojisima {
         this.element.style.transform =
             "translate(-50%, -50%)";
 
-        this.element.style.zIndex = "3";
+        this.element.style.zIndex =
+            "3";
+
 
         this.healthBar =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         this.healthBar.className =
             "player-health";
@@ -104,8 +112,11 @@ class Rojisima {
         this.healthBar.style.overflow =
             "hidden";
 
+
         this.healthFill =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         this.healthFill.className =
             "player-health-fill";
@@ -122,6 +133,7 @@ class Rojisima {
         this.healthFill.style.transition =
             "width 0.15s ease";
 
+
         this.healthBar.appendChild(
             this.healthFill
         );
@@ -130,18 +142,24 @@ class Rojisima {
             this.healthBar
         );
 
+
         this.createSpear();
+
 
         this.world.appendChild(
             this.element
         );
 
+
         this.keys = {
+
             up: false,
             down: false,
             left: false,
             right: false
+
         };
+
 
         this.isMoving = false;
 
@@ -152,22 +170,29 @@ class Rojisima {
         this.lastTime =
             performance.now();
 
+
         this.setupInput();
 
         this.updatePosition();
+
         this.updateHealthBar();
 
-        requestAnimationFrame(
-            (time) => this.gameLoop(time)
-        );
-    }
 
+        requestAnimationFrame(
+            (time) =>
+                this.gameLoop(time)
+        );
+
+    }
 
 
     createSpear() {
 
         this.spear =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
+
 
         this.spear.style.position =
             "absolute";
@@ -205,11 +230,12 @@ class Rojisima {
         this.spear.style.zIndex =
             "4";
 
+
         this.element.appendChild(
             this.spear
         );
-    }
 
+    }
 
 
     setupInput() {
@@ -217,6 +243,11 @@ class Rojisima {
         window.addEventListener(
             "keydown",
             (event) => {
+
+                if (this.isDead) {
+                    return;
+                }
+
 
                 switch (
                     event.key.toLowerCase()
@@ -231,6 +262,7 @@ class Rojisima {
 
                         break;
 
+
                     case "s":
                     case "arrowdown":
 
@@ -239,6 +271,7 @@ class Rojisima {
                         event.preventDefault();
 
                         break;
+
 
                     case "a":
                     case "arrowleft":
@@ -249,6 +282,7 @@ class Rojisima {
 
                         break;
 
+
                     case "d":
                     case "arrowright":
 
@@ -258,6 +292,7 @@ class Rojisima {
 
                         break;
 
+
                     case "j":
 
                         this.startAttack(
@@ -266,6 +301,7 @@ class Rojisima {
 
                         break;
 
+
                     case "k":
 
                         this.startAttack(
@@ -273,10 +309,11 @@ class Rojisima {
                         );
 
                         break;
+
                 }
+
             }
         );
-
 
 
         window.addEventListener(
@@ -294,12 +331,14 @@ class Rojisima {
 
                         break;
 
+
                     case "s":
                     case "arrowdown":
 
                         this.keys.down = false;
 
                         break;
+
 
                     case "a":
                     case "arrowleft":
@@ -308,52 +347,62 @@ class Rojisima {
 
                         break;
 
+
                     case "d":
                     case "arrowright":
 
                         this.keys.right = false;
 
                         break;
+
                 }
+
             }
         );
-    }
 
+    }
 
 
     startAttack(type) {
 
-        if (this.attackState) {
+        if (
+            this.isDead ||
+            this.attackState ||
+            window.gameOver
+        ) {
             return;
         }
+
 
         this.attackState = type;
 
         this.attackHit = false;
 
-        // Capturamos la dirección en el instante
-        // en que empieza el ataque.
         this.attackFacingX =
             this.facingX;
 
         this.attackFacingY =
             this.facingY;
 
+
         if (type === "slash") {
 
             this.attackTimer =
                 0.28 *
                 this.attackSpeed;
+
         }
+
 
         if (type === "thrust") {
 
             this.attackTimer =
                 0.38 *
                 this.attackSpeed;
-        }
-    }
 
+        }
+
+    }
 
 
     updateAttack(deltaTime) {
@@ -364,13 +413,17 @@ class Rojisima {
                 "none";
 
             return;
+
         }
+
 
         this.attackTimer -=
             deltaTime;
 
+
         this.spear.style.display =
             "block";
+
 
         const angle =
             Math.atan2(
@@ -381,17 +434,21 @@ class Rojisima {
             Math.PI;
 
 
-
-        if (this.attackState === "slash") {
+        if (
+            this.attackState ===
+            "slash"
+        ) {
 
             const duration =
                 0.28 *
                 this.attackSpeed;
 
+
             const progress =
                 1 -
                 this.attackTimer /
                 duration;
+
 
             const slashAngle =
                 angle -
@@ -399,11 +456,14 @@ class Rojisima {
                 progress *
                 150;
 
+
             this.spear.style.width =
                 "72px";
 
+
             this.spear.style.transform =
                 `translateY(-50%) rotate(${slashAngle}deg)`;
+
 
             if (
                 !this.attackHit &&
@@ -417,29 +477,37 @@ class Rojisima {
                     78,
                     95
                 );
+
             }
+
         }
 
 
-
-        if (this.attackState === "thrust") {
+        if (
+            this.attackState ===
+            "thrust"
+        ) {
 
             const duration =
                 0.38 *
                 this.attackSpeed;
+
 
             const progress =
                 1 -
                 this.attackTimer /
                 duration;
 
+
             this.spear.style.width =
                 progress < 0.45
                     ? "70px"
                     : "125px";
 
+
             this.spear.style.transform =
                 `translateY(-50%) rotate(${angle}deg)`;
+
 
             if (
                 !this.attackHit &&
@@ -453,12 +521,15 @@ class Rojisima {
                     135,
                     42
                 );
+
             }
+
         }
 
 
-
-        if (this.attackTimer <= 0) {
+        if (
+            this.attackTimer <= 0
+        ) {
 
             this.attackState = null;
 
@@ -466,9 +537,10 @@ class Rojisima {
 
             this.spear.style.display =
                 "none";
-        }
-    }
 
+        }
+
+    }
 
 
     performAttack(
@@ -480,9 +552,11 @@ class Rojisima {
         const soldiers =
             window.soldiers;
 
+
         if (!soldiers) {
             return;
         }
+
 
         for (
             const soldier of soldiers
@@ -492,11 +566,16 @@ class Rojisima {
                 continue;
             }
 
+
             const dx =
-                soldier.x - this.x;
+                soldier.x -
+                this.x;
+
 
             const dy =
-                soldier.y - this.y;
+                soldier.y -
+                this.y;
+
 
             const distance =
                 Math.sqrt(
@@ -504,32 +583,44 @@ class Rojisima {
                     dy * dy
                 );
 
-            if (distance > range) {
+
+            if (
+                distance > range
+            ) {
                 continue;
             }
 
-            if (distance === 0) {
+
+            if (
+                distance === 0
+            ) {
                 continue;
             }
+
 
             const normalizedX =
-                dx / distance;
+                dx /
+                distance;
+
 
             const normalizedY =
-                dy / distance;
+                dy /
+                distance;
 
-            // El hitbox también usa la dirección
-            // congelada al iniciar el ataque.
+
             const dot =
                 normalizedX *
                     this.attackFacingX +
                 normalizedY *
                     this.attackFacingY;
 
+
             const requiredDot =
-                this.attackState === "slash"
+                this.attackState ===
+                "slash"
                     ? 0.25
                     : 0.65;
+
 
             if (
                 dot >= requiredDot
@@ -538,20 +629,26 @@ class Rojisima {
                 soldier.takeDamage(
                     damage
                 );
-            }
-        }
-    }
 
+            }
+
+        }
+
+    }
 
 
     gameLoop(currentTime) {
 
         const deltaTime =
-            (currentTime - this.lastTime) /
-            1000;
+            (
+                currentTime -
+                this.lastTime
+            ) / 1000;
+
 
         this.lastTime =
             currentTime;
+
 
         const delta =
             Math.min(
@@ -559,26 +656,47 @@ class Rojisima {
                 0.05
             );
 
-        this.updateMovement(delta);
 
-        this.updateAttack(delta);
+        if (!this.isDead) {
 
-        this.updateAnimation(delta);
+            this.updateMovement(
+                delta
+            );
 
-        this.updatePosition();
+            this.updateAttack(
+                delta
+            );
+
+            this.updateAnimation(
+                delta
+            );
+
+            this.updatePosition();
+
+        }
+
 
         requestAnimationFrame(
             (time) =>
                 this.gameLoop(time)
         );
-    }
 
+    }
 
 
     updateMovement(deltaTime) {
 
+        if (
+            this.isDead ||
+            window.gameOver
+        ) {
+            return;
+        }
+
+
         let directionX = 0;
         let directionY = 0;
+
 
         if (this.keys.left) {
             directionX--;
@@ -596,22 +714,29 @@ class Rojisima {
             directionY++;
         }
 
+
         this.isMoving =
             directionX !== 0 ||
             directionY !== 0;
+
 
         if (!this.isMoving) {
             return;
         }
 
+
         const length =
             Math.sqrt(
-                directionX * directionX +
-                directionY * directionY
+                directionX *
+                    directionX +
+                directionY *
+                    directionY
             );
+
 
         directionX /= length;
         directionY /= length;
+
 
         this.facingX =
             directionX;
@@ -619,18 +744,23 @@ class Rojisima {
         this.facingY =
             directionY;
 
+
         const movementX =
             directionX *
             this.speed *
             deltaTime;
+
 
         const movementY =
             directionY *
             this.speed *
             deltaTime;
 
+
         const nextX =
-            this.x + movementX;
+            this.x +
+            movementX;
+
 
         if (
             !this.collidesWithCover(
@@ -641,10 +771,14 @@ class Rojisima {
 
             this.x =
                 nextX;
+
         }
 
+
         const nextY =
-            this.y + movementY;
+            this.y +
+            movementY;
+
 
         if (
             !this.collidesWithCover(
@@ -655,9 +789,10 @@ class Rojisima {
 
             this.y =
                 nextY;
-        }
-    }
 
+        }
+
+    }
 
 
     collidesWithCover(
@@ -668,25 +803,31 @@ class Rojisima {
         const coverBlocks =
             window.coverBlocks;
 
+
         if (!coverBlocks) {
             return false;
         }
+
 
         const playerLeft =
             centerX -
             this.width / 2;
 
+
         const playerRight =
             centerX +
             this.width / 2;
+
 
         const playerTop =
             centerY -
             this.height / 2;
 
+
         const playerBottom =
             centerY +
             this.height / 2;
+
 
         for (
             const block of coverBlocks
@@ -701,34 +842,49 @@ class Rojisima {
                     cell[0] *
                     window.GRID_SIZE;
 
+
                 const cellTop =
                     block.y +
                     cell[1] *
                     window.GRID_SIZE;
 
+
                 const cellRight =
                     cellLeft +
                     window.GRID_SIZE;
+
 
                 const cellBottom =
                     cellTop +
                     window.GRID_SIZE;
 
+
                 const collision =
-                    playerRight > cellLeft &&
-                    playerLeft < cellRight &&
-                    playerBottom > cellTop &&
-                    playerTop < cellBottom;
+                    playerRight >
+                        cellLeft &&
+
+                    playerLeft <
+                        cellRight &&
+
+                    playerBottom >
+                        cellTop &&
+
+                    playerTop <
+                        cellBottom;
+
 
                 if (collision) {
                     return true;
                 }
+
             }
+
         }
 
-        return false;
-    }
 
+        return false;
+
+    }
 
 
     updateAnimation(deltaTime) {
@@ -742,9 +898,12 @@ class Rojisima {
         } else {
 
             this.bobTime *= 0.8;
+
         }
 
+
         let bobOffset = 0;
+
 
         if (this.isMoving) {
 
@@ -753,15 +912,17 @@ class Rojisima {
                     this.bobTime
                 ) *
                 this.bobHeight;
+
         }
+
 
         this.element.style.transform =
             `translate(
                 -50%,
                 calc(-50% + ${bobOffset}px)
             )`;
-    }
 
+    }
 
 
     updatePosition() {
@@ -771,8 +932,8 @@ class Rojisima {
 
         this.element.style.top =
             `${this.y}px`;
-    }
 
+    }
 
 
     updateHealthBar() {
@@ -782,22 +943,33 @@ class Rojisima {
                 0,
                 Math.min(
                     100,
-                    (this.health /
-                        this.maxHealth) *
+                    (
+                        this.health /
+                        this.maxHealth
+                    ) *
                     100
                 )
             );
 
+
         this.healthFill.style.width =
             `${percentage}%`;
-    }
 
+    }
 
 
     takeDamage(amount) {
 
+        if (
+            this.isDead
+        ) {
+            return;
+        }
+
+
         this.health -=
             amount;
+
 
         this.health =
             Math.max(
@@ -805,32 +977,80 @@ class Rojisima {
                 this.health
             );
 
+
         this.updateHealthBar();
+
 
         if (
             this.health <= 0
         ) {
 
             this.onDeath();
-        }
-    }
 
+        }
+
+    }
 
 
     onDeath() {
 
-        console.log(
-            "Rojísima ha muerto."
-        );
+        if (this.isDead) {
+            return;
+        }
+
+
+        this.isDead = true;
+
+        this.attackState = null;
+
+        this.spear.style.display =
+            "none";
+
+
+        this.keys.up = false;
+        this.keys.down = false;
+        this.keys.left = false;
+        this.keys.right = false;
+
+
+        if (
+            window.triggerGameOver
+        ) {
+
+            window.triggerGameOver();
+
+        }
+
     }
+
 }
 
 
+/*
+    IMPORTANTE:
 
-const rojisima =
-    new Rojisima(
-        window.world
-    );
+    Primero exponemos la clase.
+*/
 
-window.rojisima =
-    rojisima;
+window.Rojisima =
+    Rojisima;
+
+
+/*
+    Y aquí estaba el condenado problema.
+
+    Rojisima necesita existir antes de que
+    WaveManager intente crear soldados.
+*/
+
+if (
+    window.world &&
+    !window.rojisima
+) {
+
+    window.rojisima =
+        new Rojisima(
+            window.world
+        );
+
+}

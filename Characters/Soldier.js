@@ -24,20 +24,15 @@ class Soldier {
         this.speed = 105;
 
         this.maxHealth = 40;
-        this.health =
-            this.maxHealth;
+        this.health = this.maxHealth;
 
         this.isDead = false;
 
-        this.state =
-            "chase";
+        this.state = "chase";
 
         this.comboStep = 0;
-
         this.attackTimer = 0;
-
         this.attackHit = false;
-
         this.attackCooldown = 0;
 
         this.element =
@@ -74,7 +69,6 @@ class Soldier {
             "3";
 
         this.createHealthBar();
-
         this.createSword();
 
         this.world.appendChild(
@@ -199,7 +193,10 @@ class Soldier {
 
     gameLoop(currentTime) {
 
-        if (this.isDead) {
+        if (
+            this.isDead ||
+            window.gameOver
+        ) {
             return;
         }
 
@@ -245,11 +242,21 @@ class Soldier {
 
             this.attackCooldown -=
                 deltaTime;
+
+            this.attackCooldown =
+                Math.max(
+                    0,
+                    this.attackCooldown
+                );
         }
     }
 
 
     updateAI(deltaTime) {
+
+        if (window.gameOver) {
+            return;
+        }
 
         const player =
             window.rojisima;
@@ -316,6 +323,10 @@ class Soldier {
                     dy * dy
                 );
 
+            if (length === 0) {
+                return;
+            }
+
             const directionX =
                 dx / length;
 
@@ -337,6 +348,13 @@ class Soldier {
 
     startAttack() {
 
+        if (
+            this.isDead ||
+            window.gameOver
+        ) {
+            return;
+        }
+
         this.state =
             "attack";
 
@@ -354,6 +372,13 @@ class Soldier {
 
 
     updateAttack(deltaTime) {
+
+        if (
+            this.isDead ||
+            window.gameOver
+        ) {
+            return;
+        }
 
         this.attackTimer -=
             deltaTime;
@@ -543,6 +568,7 @@ class Soldier {
         this.attackHit =
             false;
 
+
         if (
             this.comboStep === 1
         ) {
@@ -553,6 +579,7 @@ class Soldier {
             return;
         }
 
+
         if (
             this.comboStep === 2
         ) {
@@ -562,6 +589,7 @@ class Soldier {
 
             return;
         }
+
 
         this.finishAttack();
     }
@@ -588,7 +616,10 @@ class Soldier {
 
     takeDamage(amount) {
 
-        if (this.isDead) {
+        if (
+            this.isDead ||
+            window.gameOver
+        ) {
             return;
         }
 
@@ -602,6 +633,7 @@ class Soldier {
             );
 
         this.updateHealthBar();
+
 
         if (
             this.health <= 0
@@ -634,8 +666,15 @@ class Soldier {
 
     onDeath() {
 
+        if (this.isDead) {
+            return;
+        }
+
         this.isDead =
             true;
+
+        this.state =
+            "dead";
 
         this.sword.style.display =
             "none";
@@ -648,6 +687,7 @@ class Soldier {
 
         this.element.style.transform =
             "translate(-50%, -50%) scale(0.7)";
+
 
         setTimeout(
             () => {
