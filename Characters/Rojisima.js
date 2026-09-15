@@ -608,10 +608,12 @@ class Rojisima {
                 direction.y * 35,
 
             vx:
-                direction.x * 650,
+                direction.x *
+                (heavy ? 750 : 650),
 
             vy:
-                direction.y * 650,
+                direction.y *
+                (heavy ? 750 : 650),
 
             damage: heavy ? 30 : 10,
 

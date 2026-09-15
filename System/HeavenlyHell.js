@@ -1,205 +1,237 @@
-/*
- * HEAVENLY HELL
- * Adaptive Combat Prototype
- */
-
 class HeavenlyHell {
 
     constructor() {
         this.enabled = true;
 
-        this.pathUpdateInterval = 0.25;
-        this.pathRange = 600;
-        this.gridSize = 25;
+        this.pathUpdateInterval =
+            0.25;
 
-        console.log("Heavenly Hell initialized.");
+        this.pathRange =
+            600;
+
+        this.gridSize =
+            25;
+
+        this.maxPathIterations =
+            1200;
+
+        this.dodgeLookahead =
+            0.65;
+
+        this.dodgeSideDistance =
+            80;
+
+        this.dodgeDuration =
+            0.16;
+
+        this.dodgeCooldown =
+            0.32;
+
+        this.nextPathOffset =
+            0;
     }
 
-    enable() {
-        this.enabled = true;
-    }
-
-    disable() {
-        this.enabled = false;
-    }
-
-    update() {
-        if (!this.enabled) {
-            return;
-        }
-    }
-
-    getMovementDecision(soldier, player) {
-        if (!this.enabled) {
+    getMovementDecision(
+        soldier,
+        player
+    ) {
+        if (
+            !soldier ||
+            soldier.isDead ||
+            !player ||
+            player.isDead
+        ) {
             return null;
         }
 
-        const dodge = this.getProjectileDodge(
-            soldier,
-            player
-        );
+        const dodge =
+            this.getProjectileDodge(
+                soldier,
+                player
+            );
 
         if (dodge) {
-            return dodge;
+            return {
+                x: dodge.x,
+                y: dodge.y,
+                dodge: !dodge.dash,
+                dash: !!dodge.dash
+            };
+        }
+
+        const distance =
+            Math.hypot(
+                player.x - soldier.x,
+                player.y - soldier.y
+            );
+
+        if (
+            distance <=
+            soldier.attackRange
+        ) {
+            return null;
         }
 
         if (
-            !soldier.advancedPath ||
-            soldier.advancedPath.length === 0 ||
-            soldier.pathTimer <= 0
+            soldier.pathRecoveryTimer > 0
         ) {
-            const path = this.findPath(
-                soldier,
-                player.x,
-                player.y
-            );
+            return null;
+        }
 
-            if (path.length > 0) {
-                soldier.advancedPath = path;
+        if (
+            soldier.pathTimer <= 0 ||
+            soldier.repathRequested ||
+            soldier.path.length === 0
+        ) {
+            const newPath =
+                this.findPath(
+                    soldier,
+                    player
+                );
+
+            if (newPath.length > 0) {
+                soldier.path =
+                    newPath;
+
                 soldier.pathIndex = 0;
             }
 
             soldier.pathTimer =
                 this.pathUpdateInterval;
+
+            soldier.repathRequested =
+                false;
         }
 
-        soldier.pathTimer = Math.max(
-            0,
-            soldier.pathTimer -
-            soldier.lastDeltaTime
-        );
-
         if (
-            !soldier.advancedPath ||
-            soldier.advancedPath.length === 0
+            soldier.path.length === 0
         ) {
-            return null;
+            return this.getFallbackDirection(
+                soldier,
+                player
+            );
         }
 
         while (
             soldier.pathIndex <
-            soldier.advancedPath.length
+            soldier.path.length
         ) {
             const node =
-                soldier.advancedPath[
+                soldier.path[
                     soldier.pathIndex
                 ];
 
-            const dx =
-                node.x - soldier.x;
-
-            const dy =
-                node.y - soldier.y;
-
-            const distance =
-                Math.sqrt(
-                    dx * dx +
-                    dy * dy
+            const distanceToNode =
+                Math.hypot(
+                    node.x - soldier.x,
+                    node.y - soldier.y
                 );
 
-            if (distance < 18) {
-                soldier.pathIndex++;
-                continue;
+            if (
+                distanceToNode >= 18
+            ) {
+                break;
             }
 
-            const length = Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
-
-            if (length === 0) {
-                soldier.pathIndex++;
-                continue;
-            }
-
-            return {
-                type: "path",
-                x: dx / length,
-                y: dy / length
-            };
+            soldier.pathIndex++;
         }
 
-        return null;
+        if (
+            soldier.pathIndex >=
+            soldier.path.length
+        ) {
+            soldier.repathRequested =
+                true;
+
+            return this.getFallbackDirection(
+                soldier,
+                player
+            );
+        }
+
+        const node =
+            soldier.path[
+                soldier.pathIndex
+            ];
+
+        const dx =
+            node.x - soldier.x;
+
+        const dy =
+            node.y - soldier.y;
+
+        const length =
+            Math.hypot(dx, dy);
+
+        if (length <= 0.001) {
+            return null;
+        }
+
+        return {
+            x: dx / length,
+            y: dy / length
+        };
     }
 
-    findPath(soldier, targetX, targetY) {
-
-        const gridSize =
+    findPath(
+        soldier,
+        player
+    ) {
+        const grid =
             this.gridSize;
 
         const startX =
             Math.round(
-                soldier.x / gridSize
-            ) * gridSize;
+                soldier.x / grid
+            ) * grid;
 
         const startY =
             Math.round(
-                soldier.y / gridSize
-            ) * gridSize;
+                soldier.y / grid
+            ) * grid;
 
-        const endX =
+        const goalX =
             Math.round(
-                targetX / gridSize
-            ) * gridSize;
+                player.x / grid
+            ) * grid;
 
-        const endY =
+        const goalY =
             Math.round(
-                targetY / gridSize
-            ) * gridSize;
-
-        const distance =
-            Math.sqrt(
-                Math.pow(endX - startX, 2) +
-                Math.pow(endY - startY, 2)
-            );
+                player.y / grid
+            ) * grid;
 
         if (
-            distance >
-            this.pathRange
+            Math.hypot(
+                goalX - startX,
+                goalY - startY
+            ) > this.pathRange
         ) {
             return [];
         }
-
-        const start = {
-            x: startX,
-            y: startY
-        };
-
-        const goal = {
-            x: endX,
-            y: endY
-        };
-
-        if (
-            !this.isWalkable(
-                soldier,
-                start.x,
-                start.y
-            )
-        ) {
-            return [];
-        }
-
-        const open = [];
-        const closed = new Set();
-        const nodes = new Map();
 
         const startKey =
-            this.nodeKey(
-                start.x,
-                start.y
-            );
+            `${startX},${startY}`;
+
+        const goalKey =
+            `${goalX},${goalY}`;
+
+        const open = [];
+
+        const nodes =
+            new Map();
+
+        const closed =
+            new Set();
 
         const startNode = {
-            x: start.x,
-            y: start.y,
+            x: startX,
+            y: startY,
             g: 0,
-            h: this.heuristic(
-                start.x,
-                start.y,
-                goal.x,
-                goal.y
+            h: Math.hypot(
+                goalX - startX,
+                goalY - startY
             ),
+            f: 0,
             parent: null
         };
 
@@ -214,22 +246,22 @@ class HeavenlyHell {
         );
 
         const directions = [
-            { x: 1, y: 0, cost: 1 },
-            { x: -1, y: 0, cost: 1 },
-            { x: 0, y: 1, cost: 1 },
-            { x: 0, y: -1, cost: 1 },
-            { x: 1, y: 1, cost: 1.414 },
-            { x: -1, y: 1, cost: 1.414 },
-            { x: 1, y: -1, cost: 1.414 },
-            { x: -1, y: -1, cost: 1.414 }
+            [1, 0],
+            [-1, 0],
+            [0, 1],
+            [0, -1],
+            [1, 1],
+            [1, -1],
+            [-1, 1],
+            [-1, -1]
         ];
 
         let iterations = 0;
-        const maxIterations = 1800;
 
         while (
             open.length > 0 &&
-            iterations < maxIterations
+            iterations <
+                this.maxPathIterations
         ) {
             iterations++;
 
@@ -255,10 +287,7 @@ class HeavenlyHell {
                 )[0];
 
             const currentKey =
-                this.nodeKey(
-                    current.x,
-                    current.y
-                );
+                `${current.x},${current.y}`;
 
             if (
                 closed.has(currentKey)
@@ -269,12 +298,7 @@ class HeavenlyHell {
             closed.add(currentKey);
 
             if (
-                Math.abs(
-                    current.x - goal.x
-                ) <= gridSize &&
-                Math.abs(
-                    current.y - goal.y
-                ) <= gridSize
+                currentKey === goalKey
             ) {
                 return this.reconstructPath(
                     current
@@ -284,23 +308,31 @@ class HeavenlyHell {
             for (
                 const direction of directions
             ) {
-                const nextX =
+                const nx =
                     current.x +
-                    direction.x *
-                    gridSize;
+                    direction[0] *
+                    grid;
 
-                const nextY =
+                const ny =
                     current.y +
-                    direction.y *
-                    gridSize;
+                    direction[1] *
+                    grid;
 
                 if (
-                    Math.abs(
-                        nextX - start.x
-                    ) > this.pathRange ||
-                    Math.abs(
-                        nextY - start.y
-                    ) > this.pathRange
+                    Math.hypot(
+                        nx - startX,
+                        ny - startY
+                    ) >
+                    this.pathRange
+                ) {
+                    continue;
+                }
+
+                const key =
+                    `${nx},${ny}`;
+
+                if (
+                    closed.has(key)
                 ) {
                     continue;
                 }
@@ -308,97 +340,87 @@ class HeavenlyHell {
                 if (
                     !this.isWalkable(
                         soldier,
-                        nextX,
-                        nextY
+                        nx,
+                        ny
                     )
                 ) {
                     continue;
                 }
 
                 if (
-                    direction.x !== 0 &&
-                    direction.y !== 0
+                    direction[0] !== 0 &&
+                    direction[1] !== 0
                 ) {
-                    if (
-                        !this.isWalkable(
+                    const sideA =
+                        this.isWalkable(
                             soldier,
                             current.x +
-                            direction.x *
-                            gridSize,
+                                direction[0] *
+                                grid,
                             current.y
-                        ) ||
-                        !this.isWalkable(
+                        );
+
+                    const sideB =
+                        this.isWalkable(
                             soldier,
                             current.x,
                             current.y +
-                            direction.y *
-                            gridSize
-                        )
+                                direction[1] *
+                                grid
+                        );
+
+                    if (
+                        !sideA ||
+                        !sideB
                     ) {
                         continue;
                     }
                 }
 
-                const nextKey =
-                    this.nodeKey(
-                        nextX,
-                        nextY
-                    );
+                const movementCost =
+                    direction[0] !== 0 &&
+                    direction[1] !== 0
+                        ? 1.414
+                        : 1;
+
+                const tentativeG =
+                    current.g +
+                    movementCost *
+                    grid;
+
+                const existing =
+                    nodes.get(key);
 
                 if (
-                    closed.has(nextKey)
+                    existing &&
+                    tentativeG >=
+                        existing.g
                 ) {
                     continue;
                 }
 
-                const tentativeG =
-                    current.g +
-                    direction.cost;
+                const node = {
+                    x: nx,
+                    y: ny,
+                    g: tentativeG,
+                    h: Math.hypot(
+                        goalX - nx,
+                        goalY - ny
+                    ),
+                    f: 0,
+                    parent: current
+                };
 
-                let nextNode =
-                    nodes.get(nextKey);
+                node.f =
+                    node.g +
+                    node.h;
 
-                if (
-                    !nextNode ||
-                    tentativeG <
-                    nextNode.g
-                ) {
-                    if (!nextNode) {
-                        nextNode = {
-                            x: nextX,
-                            y: nextY,
-                            g: 0,
-                            h: 0,
-                            f: 0,
-                            parent: null
-                        };
+                nodes.set(
+                    key,
+                    node
+                );
 
-                        nodes.set(
-                            nextKey,
-                            nextNode
-                        );
-                    }
-
-                    nextNode.g =
-                        tentativeG;
-
-                    nextNode.h =
-                        this.heuristic(
-                            nextX,
-                            nextY,
-                            goal.x,
-                            goal.y
-                        );
-
-                    nextNode.f =
-                        nextNode.g +
-                        nextNode.h;
-
-                    nextNode.parent =
-                        current;
-
-                    open.push(nextNode);
-                }
+                open.push(node);
             }
         }
 
@@ -406,11 +428,15 @@ class HeavenlyHell {
     }
 
     reconstructPath(node) {
-
         const path = [];
-        let current = node;
 
-        while (current) {
+        let current =
+            node;
+
+        while (
+            current &&
+            current.parent
+        ) {
             path.push({
                 x: current.x,
                 y: current.y
@@ -422,27 +448,7 @@ class HeavenlyHell {
 
         path.reverse();
 
-        if (path.length > 0) {
-            path.shift();
-        }
-
         return path;
-    }
-
-    heuristic(
-        x1,
-        y1,
-        x2,
-        y2
-    ) {
-        return Math.sqrt(
-            Math.pow(x2 - x1, 2) +
-            Math.pow(y2 - y1, 2)
-        ) / this.gridSize;
-    }
-
-    nodeKey(x, y) {
-        return `${x},${y}`;
     }
 
     isWalkable(
@@ -456,23 +462,109 @@ class HeavenlyHell {
         );
     }
 
+    getFallbackDirection(
+        soldier,
+        player
+    ) {
+        const dx =
+            player.x - soldier.x;
+
+        const dy =
+            player.y - soldier.y;
+
+        const distance =
+            Math.hypot(dx, dy);
+
+        if (
+            distance <= 0.001
+        ) {
+            return null;
+        }
+
+        const directX =
+            dx / distance;
+
+        const directY =
+            dy / distance;
+
+        const step =
+            12;
+
+        if (
+            !soldier.collidesWithCover(
+                soldier.x +
+                    directX *
+                    step,
+                soldier.y +
+                    directY *
+                    step
+            )
+        ) {
+            return {
+                x: directX,
+                y: directY
+            };
+        }
+
+        const alternatives = [
+            {
+                x: -directY,
+                y: directX
+            },
+            {
+                x: directY,
+                y: -directX
+            }
+        ];
+
+        for (
+            const direction of alternatives
+        ) {
+            if (
+                !soldier.collidesWithCover(
+                    soldier.x +
+                        direction.x *
+                        step,
+                    soldier.y +
+                        direction.y *
+                        step
+                )
+            ) {
+                return direction;
+            }
+        }
+
+        return null;
+    }
+
     getProjectileDodge(
         soldier,
         player
     ) {
         if (
+            !player ||
             !player.projectiles ||
             player.projectiles.length === 0
         ) {
             return null;
         }
 
-        const dangerRadius = 120;
+        if (
+            soldier.dodgeCooldown > 0
+        ) {
+            return null;
+        }
+
+        let bestThreat = null;
 
         for (
             const projectile of
             player.projectiles
         ) {
+            if (!projectile) {
+                continue;
+            }
+
             const dx =
                 soldier.x -
                 projectile.x;
@@ -482,28 +574,20 @@ class HeavenlyHell {
                 projectile.y;
 
             const distance =
-                Math.sqrt(
-                    dx * dx +
-                    dy * dy
+                Math.hypot(
+                    dx,
+                    dy
                 );
 
-            if (
-                distance >
-                dangerRadius
-            ) {
-                continue;
-            }
-
             const velocityLength =
-                Math.sqrt(
-                    projectile.vx *
-                    projectile.vx +
-                    projectile.vy *
+                Math.hypot(
+                    projectile.vx,
                     projectile.vy
                 );
 
             if (
-                velocityLength === 0
+                velocityLength <=
+                0.001
             ) {
                 continue;
             }
@@ -517,70 +601,188 @@ class HeavenlyHell {
                 velocityLength;
 
             const toward =
-                dx * velocityX +
-                dy * velocityY;
+                dx *
+                velocityX +
+                dy *
+                velocityY;
 
-            if (toward <= 0) {
+            if (
+                toward <= 0
+            ) {
                 continue;
             }
 
-            const sideX =
-                -velocityY;
-
-            const sideY =
-                velocityX;
-
-            const leftX =
-                soldier.x +
-                sideX * 80;
-
-            const leftY =
-                soldier.y +
-                sideY * 80;
-
-            const rightX =
-                soldier.x -
-                sideX * 80;
-
-            const rightY =
-                soldier.y -
-                sideY * 80;
-
-            const leftBlocked =
-                soldier.collidesWithCover(
-                    leftX,
-                    leftY
+            const perpendicular =
+                Math.abs(
+                    dx *
+                        velocityY -
+                    dy *
+                        velocityX
                 );
 
-            const rightBlocked =
-                soldier.collidesWithCover(
-                    rightX,
-                    rightY
-                );
+            const dangerRadius =
+                Math.max(
+                    soldier.width,
+                    soldier.height
+                ) /
+                    2 +
+                (projectile.radius || 0) +
+                18;
 
-            if (!leftBlocked) {
-                return {
-                    type: "dodge",
-                    x: sideX,
-                    y: sideY
-                };
+            if (
+                perpendicular >
+                dangerRadius
+            ) {
+                continue;
             }
 
-            if (!rightBlocked) {
-                return {
-                    type: "dodge",
-                    x: -sideX,
-                    y: -sideY
+            const timeToImpact =
+                toward /
+                velocityLength;
+
+            if (
+                timeToImpact < 0 ||
+                timeToImpact >
+                    this.dodgeLookahead
+            ) {
+                continue;
+            }
+
+            if (
+                !bestThreat ||
+                timeToImpact <
+                    bestThreat.time
+            ) {
+                bestThreat = {
+                    projectile,
+                    time: timeToImpact,
+                    velocityX,
+                    velocityY
                 };
             }
         }
 
-        return null;
+        if (!bestThreat) {
+            return null;
+        }
+
+        const direction =
+            this.chooseDodgeDirection(
+                soldier,
+                player,
+                bestThreat
+            );
+
+        if (!direction) {
+            return null;
+        }
+
+        if (
+            soldier.isBlasterCounter &&
+            Math.hypot(
+                player.x - soldier.x,
+                player.y - soldier.y
+            ) < 180 &&
+            bestThreat.time < 0.30 &&
+            soldier.dashCooldown <= 0
+        ) {
+            return {
+                x: direction.x,
+                y: direction.y,
+                dash: true
+            };
+        }
+
+        return {
+            x: direction.x,
+            y: direction.y,
+            dash: false
+        };
+    }
+
+    chooseDodgeDirection(
+        soldier,
+        player,
+        threat
+    ) {
+        const left = {
+            x: -threat.velocityY,
+            y: threat.velocityX
+        };
+
+        const right = {
+            x: threat.velocityY,
+            y: -threat.velocityX
+        };
+
+        const candidates = [
+            left,
+            right
+        ];
+
+        let best =
+            null;
+
+        for (
+            const direction of
+                candidates
+        ) {
+            const targetX =
+                soldier.x +
+                direction.x *
+                this.dodgeSideDistance;
+
+            const targetY =
+                soldier.y +
+                direction.y *
+                this.dodgeSideDistance;
+
+            if (
+                soldier.collidesWithCover(
+                    targetX,
+                    targetY
+                )
+            ) {
+                continue;
+            }
+
+            const playerDistance =
+                Math.hypot(
+                    targetX - player.x,
+                    targetY - player.y
+                );
+
+            if (
+                !best ||
+                playerDistance >
+                    best.playerDistance
+            ) {
+                best = {
+                    x: direction.x,
+                    y: direction.y,
+                    playerDistance
+                };
+            }
+        }
+
+        if (!best) {
+            return null;
+        }
+
+        return {
+            x: best.x,
+            y: best.y
+        };
     }
 }
 
-const heavenlyHell =
-    new HeavenlyHell();
 
-window.heavenlyHell =
-    heavenlyHell;
+window.HeavenlyHell =
+    HeavenlyHell;
+
+if (
+    !window.heavenlyHell
+) {
+    window.heavenlyHell =
+        new HeavenlyHell();
+}

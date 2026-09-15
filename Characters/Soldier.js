@@ -10,220 +10,158 @@ class Soldier {
         this.width = 44;
         this.height = 58;
 
-        this.color = "#111C20";
-        this.borderColor = "#E8E6E3";
-
         this.speed = 105;
 
+        this.health = 40;
         this.maxHealth = 40;
-        this.health = this.maxHealth;
+
+        this.attackRange = 75;
+
+        this.attackCooldown = 0;
+        this.attackCooldownDuration = 0.8;
+
+        this.comboStep = 0;
+        this.comboTimer = 0;
+        this.comboWindow = 0.45;
+        this.comboActive = false;
 
         this.isDead = false;
 
-        this.state = "chase";
-
-        this.comboStep = 0;
-        this.attackTimer = 0;
-        this.attackHit = false;
-        this.attackCooldown = 0;
+        this.color = "#111C20";
+        this.borderColor = "#E8E6E3";
 
         this.knockbackX = 0;
         this.knockbackY = 0;
         this.knockbackTimer = 0;
 
-        this.advancedPath = [];
+        this.dashTimer = 0;
+        this.dashDuration = 0;
+        this.dashX = 0;
+        this.dashY = 0;
+        this.dashSpeed = 480;
+        this.dashCooldown = 0;
+        this.dashCooldownDuration = 1.5;
+
+        this.dodgeTimer = 0;
+        this.dodgeDuration = 0;
+        this.dodgeX = 0;
+        this.dodgeY = 0;
+        this.dodgeSpeed = 300;
+        this.dodgeCooldown = 0;
+        this.dodgeCooldownDuration = 0.32;
+
+        this.path = [];
         this.pathIndex = 0;
         this.pathTimer = 0;
-        this.lastDeltaTime = 0;
+        this.pathUpdateInterval = 0.25;
+        this.repathRequested = true;
+        this.pathRecoveryTimer = 0;
+
+        this.lastTime = performance.now();
+        this.lastX = this.x;
+        this.lastY = this.y;
+        this.stuckTimer = 0;
 
         this.element =
             document.createElement("div");
 
-        this.element.className =
-            "soldier";
-
-        this.element.style.position =
-            "absolute";
-
+        this.element.className = "soldier";
+        this.element.style.position = "absolute";
         this.element.style.width =
             `${this.width}px`;
-
         this.element.style.height =
             `${this.height}px`;
-
         this.element.style.background =
             this.color;
-
         this.element.style.border =
             `3px solid ${this.borderColor}`;
-
         this.element.style.borderRadius =
             "50%";
-
         this.element.style.boxShadow =
             "0 8px 0 rgba(17, 28, 32, 0.18)";
-
         this.element.style.transform =
             "translate(-50%, -50%)";
-
         this.element.style.zIndex = "3";
-
-        this.createHealthBar();
-        this.createSword();
 
         this.world.appendChild(
             this.element
         );
 
-        this.lastTime =
-            performance.now();
-
-        this.updatePosition();
-
-        requestAnimationFrame(
-            (time) =>
-                this.gameLoop(time)
-        );
-    }
-
-    createHealthBar() {
-
-        this.healthBar =
-            document.createElement("div");
-
-        this.healthBar.style.position =
-            "absolute";
-
-        this.healthBar.style.width =
-            "50px";
-
-        this.healthBar.style.height =
-            "6px";
-
-        this.healthBar.style.left =
-            "50%";
-
-        this.healthBar.style.top =
-            "-13px";
-
-        this.healthBar.style.transform =
-            "translateX(-50%)";
-
-        this.healthBar.style.background =
-            "#111C20";
-
-        this.healthBar.style.border =
-            "1px solid #E8E6E3";
-
-        this.healthBar.style.borderRadius =
-            "4px";
-
-        this.healthBar.style.overflow =
-            "hidden";
-
-        this.healthFill =
-            document.createElement("div");
-
-        this.healthFill.style.width =
-            "100%";
-
-        this.healthFill.style.height =
-            "100%";
-
-        this.healthFill.style.background =
-            "#4FA9C6";
-
-        this.healthBar.appendChild(
-            this.healthFill
-        );
-
-        this.element.appendChild(
-            this.healthBar
-        );
-    }
-
-    createSword() {
-
         this.sword =
             document.createElement("div");
 
-        this.sword.style.position =
-            "absolute";
-
-        this.sword.style.width =
-            "72px";
-
-        this.sword.style.height =
-            "6px";
-
-        this.sword.style.left =
-            "50%";
-
-        this.sword.style.top =
-            "50%";
-
-        this.sword.style.background =
-            "#E8E6E3";
-
+        this.sword.style.position = "absolute";
+        this.sword.style.width = "72px";
+        this.sword.style.height = "6px";
+        this.sword.style.background = "#E8E6E3";
         this.sword.style.border =
-            "2px solid #111C20";
-
-        this.sword.style.borderRadius =
-            "999px";
-
-        this.sword.style.transformOrigin =
-            "0 50%";
-
-        this.sword.style.transform =
-            "translateY(-50%)";
-
-        this.sword.style.display =
-            "none";
-
-        this.sword.style.zIndex =
-            "4";
+            "2px solid #401818";
+        this.sword.style.borderRadius = "999px";
+        this.sword.style.left = "50%";
+        this.sword.style.top = "50%";
+        this.sword.style.transformOrigin = "0 50%";
+        this.sword.style.display = "none";
+        this.sword.style.zIndex = "4";
 
         this.element.appendChild(
             this.sword
         );
     }
 
+    start() {
+
+        this.lastTime =
+            performance.now();
+
+        requestAnimationFrame(
+            (time) =>
+                this.gameLoop(time)
+        );
+    }
+
     gameLoop(currentTime) {
 
-        if (
-            this.isDead ||
-            window.gameOver
-        ) {
+        if (this.isDead) {
             return;
         }
 
         const deltaTime =
-            (currentTime -
-                this.lastTime) /
-            1000;
-
-        this.lastTime =
-            currentTime;
-
-        const delta =
             Math.min(
-                deltaTime,
+                (currentTime - this.lastTime) / 1000,
                 0.05
             );
 
-        this.lastDeltaTime =
-            delta;
+        this.lastTime = currentTime;
 
-        this.updateAttackCooldown(
-            delta
-        );
+        if (window.gameOver) {
 
-        this.updateKnockback(
-            delta
-        );
+            this.updatePosition();
 
-        if (!this.knockbackTimer) {
-            this.updateAI(delta);
+            requestAnimationFrame(
+                (time) =>
+                    this.gameLoop(time)
+            );
+
+            return;
+        }
+
+        this.updateCooldowns(deltaTime);
+        this.updateKnockback(deltaTime);
+
+        if (this.knockbackTimer <= 0) {
+
+            if (this.dashTimer > 0) {
+
+                this.updateDash(deltaTime);
+
+            } else if (this.dodgeTimer > 0) {
+
+                this.updateDodge(deltaTime);
+
+            } else {
+
+                this.updateAI(deltaTime);
+            }
         }
 
         this.updatePosition();
@@ -234,44 +172,277 @@ class Soldier {
         );
     }
 
-    updateAttackCooldown(
-        deltaTime
-    ) {
+    updateCooldowns(deltaTime) {
+
+        this.attackCooldown =
+            Math.max(
+                0,
+                this.attackCooldown - deltaTime
+            );
+
+        this.dashCooldown =
+            Math.max(
+                0,
+                this.dashCooldown - deltaTime
+            );
+
+        this.dodgeCooldown =
+            Math.max(
+                0,
+                this.dodgeCooldown - deltaTime
+            );
+
+        this.pathTimer =
+            Math.max(
+                0,
+                this.pathTimer - deltaTime
+            );
+
+        this.pathRecoveryTimer =
+            Math.max(
+                0,
+                this.pathRecoveryTimer - deltaTime
+            );
+
+        this.comboTimer =
+            Math.max(
+                0,
+                this.comboTimer - deltaTime
+            );
 
         if (
-            this.attackCooldown > 0
+            this.comboTimer <= 0 &&
+            !this.comboActive
         ) {
-            this.attackCooldown =
-                Math.max(
-                    0,
-                    this.attackCooldown -
-                    deltaTime
-                );
+            this.comboStep = 0;
         }
     }
 
-    updateKnockback(
-        deltaTime
-    ) {
+    updateAI(deltaTime) {
 
-        if (
-            this.knockbackTimer <= 0
-        ) {
+        const player =
+            window.rojisima;
+
+        if (!player || player.isDead) {
             return;
         }
 
-        const movement =
-            180 * deltaTime;
+        const heavenlyHell =
+            window.heavenlyHell;
+
+        if (heavenlyHell) {
+
+            const decision =
+                heavenlyHell.getMovementDecision(
+                    this,
+                    player
+                );
+
+            if (decision) {
+
+                if (decision.dash) {
+
+                    this.startDash(
+                        decision.x,
+                        decision.y
+                    );
+
+                    return;
+                }
+
+                if (decision.dodge) {
+
+                    this.startDodge(
+                        decision.x,
+                        decision.y
+                    );
+
+                    return;
+                }
+
+                if (
+                    typeof decision.x === "number" &&
+                    typeof decision.y === "number"
+                ) {
+
+                    this.moveDirection(
+                        decision.x,
+                        decision.y,
+                        deltaTime
+                    );
+
+                    return;
+                }
+            }
+        }
+
+        const dx =
+            player.x - this.x;
+
+        const dy =
+            player.y - this.y;
+
+        const distance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+        if (
+            distance <= this.attackRange
+        ) {
+
+            this.attack();
+
+            return;
+        }
+
+        const direction =
+            this.getBasicMovement(
+                player
+            );
+
+        if (direction) {
+
+            this.moveDirection(
+                direction.x,
+                direction.y,
+                deltaTime
+            );
+        }
+    }
+
+    getBasicMovement(player) {
+
+        const dx =
+            player.x - this.x;
+
+        const dy =
+            player.y - this.y;
+
+        const distance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+        if (distance <= 0.001) {
+            return null;
+        }
+
+        const directionX =
+            dx / distance;
+
+        const directionY =
+            dy / distance;
 
         const nextX =
             this.x +
-            this.knockbackX *
-            movement;
+            directionX *
+            this.speed *
+            0.05;
 
         const nextY =
             this.y +
-            this.knockbackY *
-            movement;
+            directionY *
+            this.speed *
+            0.05;
+
+        if (
+            !this.collidesWithCover(
+                nextX,
+                nextY
+            )
+        ) {
+
+            return {
+                x: directionX,
+                y: directionY
+            };
+        }
+
+        const perpendicularA = {
+            x: -directionY,
+            y: directionX
+        };
+
+        const perpendicularB = {
+            x: directionY,
+            y: -directionX
+        };
+
+        if (
+            !this.collidesWithCover(
+                this.x +
+                perpendicularA.x *
+                this.speed *
+                0.05,
+                this.y +
+                perpendicularA.y *
+                this.speed *
+                0.05
+            )
+        ) {
+
+            return perpendicularA;
+        }
+
+        if (
+            !this.collidesWithCover(
+                this.x +
+                perpendicularB.x *
+                this.speed *
+                0.05,
+                this.y +
+                perpendicularB.y *
+                this.speed *
+                0.05
+            )
+        ) {
+
+            return perpendicularB;
+        }
+
+        return {
+            x: -directionX,
+            y: -directionY
+        };
+    }
+
+    moveDirection(
+        directionX,
+        directionY,
+        deltaTime
+    ) {
+
+        const length =
+            Math.sqrt(
+                directionX * directionX +
+                directionY * directionY
+            );
+
+        if (length <= 0.001) {
+            return;
+        }
+
+        directionX /= length;
+        directionY /= length;
+
+        const distance =
+            this.speed *
+            deltaTime;
+
+        const nextX =
+            this.x +
+            directionX *
+            distance;
+
+        const nextY =
+            this.y +
+            directionY *
+            distance;
+
+        let moved = false;
 
         if (
             !this.collidesWithCover(
@@ -279,6 +450,199 @@ class Soldier {
                 this.y
             )
         ) {
+
+            this.x = nextX;
+            moved = true;
+        }
+
+        if (
+            !this.collidesWithCover(
+                this.x,
+                nextY
+            )
+        ) {
+
+            this.y = nextY;
+            moved = true;
+        }
+
+        if (!moved) {
+            this.repathRequested = true;
+        }
+    }
+
+    attack() {
+
+        if (
+            this.attackCooldown > 0 ||
+            this.isDead
+        ) {
+            return;
+        }
+
+        const player =
+            window.rojisima;
+
+        if (!player || player.isDead) {
+            return;
+        }
+
+        const dx =
+            player.x - this.x;
+
+        const dy =
+            player.y - this.y;
+
+        const distance =
+            Math.sqrt(
+                dx * dx +
+                dy * dy
+            );
+
+        if (
+            distance >
+            this.attackRange + 10
+        ) {
+            return;
+        }
+
+        if (
+            this.comboTimer > 0 &&
+            this.comboStep < 3
+        ) {
+            this.comboStep++;
+        } else {
+            this.comboStep = 1;
+        }
+
+        this.comboTimer =
+            this.comboWindow;
+
+        this.attackCooldown =
+            this.attackCooldownDuration;
+
+        const angle =
+            Math.atan2(dy, dx) *
+            180 /
+            Math.PI;
+
+        this.sword.style.display =
+            "block";
+
+        this.sword.style.transform =
+            `rotate(${angle}deg)`;
+
+        if (this.comboStep === 1) {
+
+            player.takeDamage(6);
+
+            this.comboActive = true;
+
+            setTimeout(() => {
+
+                if (!this.isDead) {
+                    this.sword.style.display =
+                        "none";
+                }
+
+            }, 100);
+
+        } else if (this.comboStep === 2) {
+
+            player.takeDamage(6);
+
+            setTimeout(() => {
+
+                if (!this.isDead) {
+                    this.sword.style.display =
+                        "none";
+                }
+
+            }, 100);
+
+        } else {
+
+            player.takeDamage(12);
+
+            this.comboStep = 0;
+            this.comboTimer = 0;
+
+            setTimeout(() => {
+
+                if (!this.isDead) {
+                    this.sword.style.display =
+                        "none";
+                    this.comboActive = false;
+                }
+
+            }, 140);
+        }
+    }
+
+    startDash(
+        directionX,
+        directionY
+    ) {
+
+        if (
+            this.dashCooldown > 0 ||
+            this.isDead
+        ) {
+            return;
+        }
+
+        const length =
+            Math.sqrt(
+                directionX * directionX +
+                directionY * directionY
+            );
+
+        if (length <= 0.001) {
+            return;
+        }
+
+        this.dashX =
+            directionX / length;
+
+        this.dashY =
+            directionY / length;
+
+        this.dashTimer =
+            0.15;
+
+        this.dashDuration =
+            0.15;
+
+        this.dashCooldown =
+            this.dashCooldownDuration;
+
+        this.pathRecoveryTimer =
+            0.12;
+    }
+
+    updateDash(deltaTime) {
+
+        const distance =
+            this.dashSpeed *
+            deltaTime;
+
+        const nextX =
+            this.x +
+            this.dashX *
+            distance;
+
+        const nextY =
+            this.y +
+            this.dashY *
+            distance;
+
+        if (
+            !this.collidesWithCover(
+                nextX,
+                this.y
+            )
+        ) {
+
             this.x = nextX;
         }
 
@@ -288,13 +652,161 @@ class Soldier {
                 nextY
             )
         ) {
+
             this.y = nextY;
         }
 
-        this.knockbackTimer =
-            Math.max(
-                0,
-                this.knockbackTimer -
+        this.dashTimer -=
+            deltaTime;
+
+        if (
+            this.dashTimer <= 0
+        ) {
+
+            this.dashTimer = 0;
+            this.repathRequested = true;
+        }
+    }
+
+    startDodge(
+        directionX,
+        directionY
+    ) {
+
+        if (
+            this.dodgeCooldown > 0 ||
+            this.isDead
+        ) {
+            return;
+        }
+
+        const length =
+            Math.sqrt(
+                directionX * directionX +
+                directionY * directionY
+            );
+
+        if (length <= 0.001) {
+            return;
+        }
+
+        this.dodgeX =
+            directionX / length;
+
+        this.dodgeY =
+            directionY / length;
+
+        this.dodgeDuration =
+            0.16;
+
+        this.dodgeTimer =
+            this.dodgeDuration;
+
+        this.dodgeCooldown =
+            this.dodgeCooldownDuration;
+
+        this.pathRecoveryTimer =
+            0.18;
+    }
+
+    updateDodge(deltaTime) {
+
+        const distance =
+            this.dodgeSpeed *
+            deltaTime;
+
+        const nextX =
+            this.x +
+            this.dodgeX *
+            distance;
+
+        const nextY =
+            this.y +
+            this.dodgeY *
+            distance;
+
+        if (
+            !this.collidesWithCover(
+                nextX,
+                this.y
+            )
+        ) {
+
+            this.x = nextX;
+        }
+
+        if (
+            !this.collidesWithCover(
+                this.x,
+                nextY
+            )
+        ) {
+
+            this.y = nextY;
+        }
+
+        this.dodgeTimer -=
+            deltaTime;
+
+        if (
+            this.dodgeTimer <= 0
+        ) {
+
+            this.dodgeTimer = 0;
+            this.repathRequested = true;
+        }
+    }
+
+    updateKnockback(deltaTime) {
+
+        if (
+            this.knockbackTimer <= 0
+        ) {
+            return;
+        }
+
+        const nextX =
+            this.x +
+            this.knockbackX *
+            deltaTime;
+
+        const nextY =
+            this.y +
+            this.knockbackY *
+            deltaTime;
+
+        if (
+            !this.collidesWithCover(
+                nextX,
+                this.y
+            )
+        ) {
+
+            this.x = nextX;
+        }
+
+        if (
+            !this.collidesWithCover(
+                this.x,
+                nextY
+            )
+        ) {
+
+            this.y = nextY;
+        }
+
+        this.knockbackTimer -=
+            deltaTime;
+
+        this.knockbackX *=
+            Math.pow(
+                0.08,
+                deltaTime
+            );
+
+        this.knockbackY *=
+            Math.pow(
+                0.08,
                 deltaTime
             );
     }
@@ -302,570 +814,37 @@ class Soldier {
     applyKnockback(
         directionX,
         directionY,
-        distance
+        strength
     ) {
-
-        if (this.isDead) {
-            return;
-        }
 
         const length =
             Math.sqrt(
-                directionX *
-                directionX +
-                directionY *
-                directionY
+                directionX * directionX +
+                directionY * directionY
             );
 
-        if (length === 0) {
+        if (length <= 0.001) {
             return;
         }
 
         this.knockbackX =
-            directionX / length;
+            directionX /
+            length *
+            strength;
 
         this.knockbackY =
-            directionY / length;
+            directionY /
+            length *
+            strength;
 
         this.knockbackTimer =
-            distance / 180;
-    }
-
-    updateAI(deltaTime) {
-
-        if (window.gameOver) {
-            return;
-        }
-
-        const player =
-            window.rojisima;
-
-        if (
-            !player ||
-            player.health <= 0
-        ) {
-            return;
-        }
-
-        if (
-            this.state === "attack"
-        ) {
-            this.updateAttack(
-                deltaTime
-            );
-
-            return;
-        }
-
-        const dx =
-            player.x - this.x;
-
-        const dy =
-            player.y - this.y;
-
-        const distance =
-            Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
-
-        if (
-            this.attackCooldown <= 0 &&
-            distance <= 75
-        ) {
-            this.startAttack();
-            return;
-        }
-
-        if (distance <= 58) {
-            return;
-        }
-
-        const length =
-            Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
-
-        if (length === 0) {
-            return;
-        }
-
-        let directionX =
-            dx / length;
-
-        let directionY =
-            dy / length;
-
-        const heavenlyHell =
-            window.heavenlyHell;
-
-        if (
-            heavenlyHell &&
-            heavenlyHell.enabled
-        ) {
-            const decision =
-                heavenlyHell.getMovementDecision(
-                    this,
-                    player
-                );
-
-            if (decision) {
-                directionX =
-                    decision.x;
-
-                directionY =
-                    decision.y;
-            } else {
-                const movement =
-                    this.getBasicMovement(
-                        directionX,
-                        directionY,
-                        deltaTime
-                    );
-
-                directionX =
-                    movement.x;
-
-                directionY =
-                    movement.y;
-            }
-        } else {
-            const movement =
-                this.getBasicMovement(
-                    directionX,
-                    directionY,
-                    deltaTime
-                );
-
-            directionX =
-                movement.x;
-
-            directionY =
-                movement.y;
-        }
-
-        const movement =
-            this.speed *
-            deltaTime;
-
-        const desiredX =
-            this.x +
-            directionX *
-            movement;
-
-        const desiredY =
-            this.y +
-            directionY *
-            movement;
-
-        if (
-            !this.collidesWithCover(
-                desiredX,
-                this.y
-            )
-        ) {
-            this.x = desiredX;
-        }
-
-        if (
-            !this.collidesWithCover(
-                this.x,
-                desiredY
-            )
-        ) {
-            this.y = desiredY;
-        }
-    }
-
-    getBasicMovement(
-        directionX,
-        directionY,
-        deltaTime
-    ) {
-
-        const movement =
-            this.speed *
-            deltaTime;
-
-        const desiredX =
-            this.x +
-            directionX *
-            movement;
-
-        const desiredY =
-            this.y +
-            directionY *
-            movement;
-
-        const canMoveX =
-            !this.collidesWithCover(
-                desiredX,
-                this.y
-            );
-
-        const canMoveY =
-            !this.collidesWithCover(
-                this.x,
-                desiredY
-            );
-
-        if (
-            canMoveX ||
-            canMoveY
-        ) {
-            return {
-                x: directionX,
-                y: directionY
-            };
-        }
-
-        return this.getBasicSideStep(
-            directionX,
-            directionY
-        );
-    }
-
-    getBasicSideStep(
-        directionX,
-        directionY
-    ) {
-
-        const sideX =
-            -directionY;
-
-        const sideY =
-            directionX;
-
-        const options = [
-            {
-                x: sideX,
-                y: sideY
-            },
-            {
-                x: -sideX,
-                y: -sideY
-            }
-        ];
-
-        for (
-            const option of options
-        ) {
-            const testX =
-                this.x +
-                option.x *
-                25;
-
-            const testY =
-                this.y +
-                option.y *
-                25;
-
-            if (
-                !this.collidesWithCover(
-                    testX,
-                    testY
-                )
-            ) {
-                return option;
-            }
-        }
-
-        return {
-            x: 0,
-            y: 0
-        };
-    }
-
-    startAttack() {
-
-        if (
-            this.isDead ||
-            window.gameOver
-        ) {
-            return;
-        }
-
-        this.state = "attack";
-
-        this.comboStep = 0;
-
-        this.attackHit = false;
-
-        this.attackTimer = 0.25;
-
-        this.sword.style.display =
-            "block";
-    }
-
-    updateAttack(deltaTime) {
-
-        if (
-            this.isDead ||
-            window.gameOver
-        ) {
-            return;
-        }
-
-        this.attackTimer -=
-            deltaTime;
-
-        const player =
-            window.rojisima;
-
-        if (!player) {
-            return;
-        }
-
-        const dx =
-            player.x - this.x;
-
-        const dy =
-            player.y - this.y;
-
-        const distance =
-            Math.sqrt(
-                dx * dx +
-                dy * dy
-            );
-
-        const angle =
-            Math.atan2(
-                dy,
-                dx
-            ) *
-            180 /
-            Math.PI;
-
-        if (
-            this.comboStep === 0
-        ) {
-
-            const progress =
-                1 -
-                this.attackTimer /
-                0.25;
-
-            this.sword.style.width =
-                "68px";
-
-            this.sword.style.transform =
-                `translateY(-50%) rotate(${
-                    angle -
-                    75 +
-                    progress *
-                    150
-                }deg)`;
-
-            if (
-                !this.attackHit &&
-                progress >= 0.45
-            ) {
-
-                this.attackHit =
-                    true;
-
-                if (
-                    distance <= 70
-                ) {
-                    player.takeDamage(
-                        8
-                    );
-                }
-            }
-
-            if (
-                this.attackTimer <= 0
-            ) {
-                this.nextComboAttack();
-            }
-
-            return;
-        }
-
-        if (
-            this.comboStep === 1
-        ) {
-
-            const progress =
-                1 -
-                this.attackTimer /
-                0.25;
-
-            this.sword.style.width =
-                "68px";
-
-            this.sword.style.transform =
-                `translateY(-50%) rotate(${
-                    angle +
-                    75 -
-                    progress *
-                    150
-                }deg)`;
-
-            if (
-                !this.attackHit &&
-                progress >= 0.45
-            ) {
-
-                this.attackHit =
-                    true;
-
-                if (
-                    distance <= 70
-                ) {
-                    player.takeDamage(
-                        8
-                    );
-                }
-            }
-
-            if (
-                this.attackTimer <= 0
-            ) {
-                this.nextComboAttack();
-            }
-
-            return;
-        }
-
-        if (
-            this.comboStep === 2
-        ) {
-
-            const progress =
-                1 -
-                this.attackTimer /
-                0.38;
-
-            this.sword.style.width =
-                progress < 0.45
-                    ? "68px"
-                    : "105px";
-
-            this.sword.style.transform =
-                `translateY(-50%) rotate(${angle}deg)`;
-
-            if (
-                !this.attackHit &&
-                progress >= 0.55
-            ) {
-
-                this.attackHit =
-                    true;
-
-                if (
-                    distance <= 105
-                ) {
-                    player.takeDamage(
-                        15
-                    );
-                }
-            }
-
-            if (
-                this.attackTimer <= 0
-            ) {
-                this.finishAttack();
-            }
-        }
-    }
-
-    nextComboAttack() {
-
-        this.comboStep++;
-
-        this.attackHit = false;
-
-        if (
-            this.comboStep === 1
-        ) {
-            this.attackTimer =
-                0.25;
-
-            return;
-        }
-
-        if (
-            this.comboStep === 2
-        ) {
-            this.attackTimer =
-                0.38;
-
-            return;
-        }
-
-        this.finishAttack();
-    }
-
-    finishAttack() {
-
-        this.state = "chase";
-
-        this.comboStep = 0;
-
-        this.attackHit = false;
-
-        this.attackCooldown = 0.8;
-
-        this.advancedPath = [];
-
-        this.pathIndex = 0;
-
-        this.pathTimer = 0;
-
-        this.sword.style.display =
-            "none";
-    }
-
-    takeDamage(amount) {
-
-        if (
-            this.isDead ||
-            window.gameOver
-        ) {
-            return;
-        }
-
-        this.health -= amount;
-
-        this.health =
-            Math.max(
-                0,
-                this.health
-            );
-
-        this.updateHealthBar();
-
-        if (
-            this.health <= 0
-        ) {
-            this.onDeath();
-        }
-    }
-
-    updateHealthBar() {
-
-        const percentage =
-            Math.max(
-                0,
-                Math.min(
-                    100,
-                    (
-                        this.health /
-                        this.maxHealth
-                    ) *
-                    100
-                )
-            );
-
-        this.healthFill.style.width =
-            `${percentage}%`;
+            0.12;
     }
 
     collidesWithCover(
         centerX,
-        centerY
+        centerY,
+        radius = 0
     ) {
 
         const coverBlocks =
@@ -875,21 +854,32 @@ class Soldier {
             return false;
         }
 
+        const gridSize =
+            window.GRID_SIZE || 50;
+
+        const halfWidth =
+            this.width / 2 +
+            radius;
+
+        const halfHeight =
+            this.height / 2 +
+            radius;
+
         const left =
             centerX -
-            this.width / 2;
+            halfWidth;
 
         const right =
             centerX +
-            this.width / 2;
+            halfWidth;
 
         const top =
             centerY -
-            this.height / 2;
+            halfHeight;
 
         const bottom =
             centerY +
-            this.height / 2;
+            halfHeight;
 
         for (
             const block of coverBlocks
@@ -902,20 +892,20 @@ class Soldier {
                 const cellLeft =
                     block.x +
                     cell[0] *
-                    window.GRID_SIZE;
+                    gridSize;
 
                 const cellTop =
                     block.y +
                     cell[1] *
-                    window.GRID_SIZE;
+                    gridSize;
 
                 const cellRight =
                     cellLeft +
-                    window.GRID_SIZE;
+                    gridSize;
 
                 const cellBottom =
                     cellTop +
-                    window.GRID_SIZE;
+                    gridSize;
 
                 if (
                     right > cellLeft &&
@@ -923,57 +913,13 @@ class Soldier {
                     bottom > cellTop &&
                     top < cellBottom
                 ) {
+
                     return true;
                 }
             }
         }
 
         return false;
-    }
-
-    onDeath() {
-
-        if (this.isDead) {
-            return;
-        }
-
-        this.isDead = true;
-
-        this.state = "dead";
-
-        this.sword.style.display =
-            "none";
-
-        this.element.style.transition =
-            "opacity 0.25s ease, transform 0.25s ease";
-
-        this.element.style.opacity =
-            "0";
-
-        this.element.style.transform =
-            "translate(-50%, -50%) scale(0.7)";
-
-        setTimeout(() => {
-
-            this.element.remove();
-
-            if (window.soldiers) {
-
-                const index =
-                    window.soldiers.indexOf(
-                        this
-                    );
-
-                if (index !== -1) {
-
-                    window.soldiers.splice(
-                        index,
-                        1
-                    );
-                }
-            }
-
-        }, 250);
     }
 
     updatePosition() {
@@ -984,6 +930,86 @@ class Soldier {
         this.element.style.top =
             `${this.y}px`;
     }
+
+    takeDamage(amount) {
+
+        if (this.isDead) {
+            return;
+        }
+
+        this.health -= amount;
+
+        if (
+            this.health <= 0
+        ) {
+
+            this.health = 0;
+            this.onDeath();
+        }
+    }
+
+    onDeath() {
+
+        if (this.isDead) {
+            return;
+        }
+
+        this.isDead = true;
+
+        this.sword.style.display =
+            "none";
+
+        this.element.style.opacity =
+            "0";
+
+        const index =
+            window.soldiers
+                ? window.soldiers.indexOf(this)
+                : -1;
+
+        if (index !== -1) {
+
+            window.soldiers.splice(
+                index,
+                1
+            );
+        }
+
+        setTimeout(() => {
+
+            this.element.remove();
+
+        }, 250);
+    }
 }
 
-window.Soldier = Soldier;
+
+class SoldierBlaster extends Soldier {
+
+    constructor(
+        worldElement,
+        x,
+        y
+    ) {
+
+        super(
+            worldElement,
+            x,
+            y
+        );
+
+        this.isBlasterCounter =
+            true;
+
+        this.dashSpeed = 500;
+        this.dashDuration = 0.15;
+        this.dashCooldownDuration = 1.1;
+    }
+}
+
+
+window.Soldier =
+    Soldier;
+
+window.SoldierBlaster =
+    SoldierBlaster;

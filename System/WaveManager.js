@@ -1,204 +1,323 @@
 class WaveManager {
-    constructor(worldElement) {
-        this.world = worldElement;
 
-        this.waves = [
+    constructor(worldElement) {
+
+        this.world =
+            worldElement;
+
+        this.currentWave = 0;
+
+        this.waveActive = false;
+
+        this.completed = false;
+
+        this.waveDefinitions = [
             {
-                number: 1,
-                enemies: 5
+                enemies: [
+                    "soldier",
+                    "soldier",
+                    "soldier",
+                    "soldier",
+                    "soldier"
+                ]
             },
             {
-                number: 2,
-                enemies: 7
+                enemies: [
+                    "soldier",
+                    "soldier",
+                    "soldier",
+                    "soldier",
+                    "soldier",
+                    "soldierBlaster",
+                    "gunner",
+                    "gunner"
+                ]
             }
         ];
 
-        this.currentWaveIndex = 0;
-        this.state = "idle";
-        this.nextWaveTimer = 0;
-        this.spawnRadius = 450;
-        this.lastTime = 0;
-        this.running = false;
+        this.currentWaveEnemies = [];
 
-        this.updateUI();
+        this.lastUpdateTime =
+            performance.now();
+
+        this.gameLoopStarted =
+            false;
+
+        this.nextWaveTimer = 0;
+
+        this.spawnMinDistance = 400;
+        this.spawnEnemyGap = 100;
     }
 
     start() {
-        if (this.running) {
+
+        if (this.gameLoopStarted) {
             return;
         }
 
-        this.currentWaveIndex = 0;
-        this.state = "idle";
+        this.gameLoopStarted =
+            true;
+
+        this.currentWave = 0;
+
+        this.completed = false;
+
+        this.waveActive = false;
+
+        this.currentWaveEnemies = [];
+
         this.nextWaveTimer = 0;
-        this.running = true;
 
         this.startCurrentWave();
 
         requestAnimationFrame(
-            (time) => this.gameLoop(time)
+            (time) =>
+                this.gameLoop(time)
         );
     }
 
     startCurrentWave() {
+
         if (
-            this.currentWaveIndex >=
-            this.waves.length
+            this.currentWave >=
+            this.waveDefinitions.length
         ) {
+
             this.complete();
+
             return;
         }
 
-        const wave =
-            this.waves[
-                this.currentWaveIndex
+        this.waveActive = true;
+
+        this.nextWaveTimer = 0;
+
+        this.currentWaveEnemies = [];
+
+        const definition =
+            this.waveDefinitions[
+                this.currentWave
             ];
 
-        const spawned =
-            this.spawnWave(
-                wave.enemies
-            );
-
-        if (spawned === 0) {
-            this.state = "error";
-
-            console.error(
-                "WaveManager: no se pudieron crear enemigos."
-            );
-
-            return;
-        }
-
-        this.state = "active";
-        this.updateUI();
-
-        console.log(
-            `Wave ${wave.number} iniciada con ${spawned} enemigos.`
-        );
-    }
-
-    spawnWave(count) {
-        const player =
-            window.rojisima;
-
-        if (!player) {
-            console.error(
-                "WaveManager: Rojísima no existe."
-            );
-
-            return 0;
-        }
-
-        if (!window.soldiers) {
-            window.soldiers = [];
-        }
-
-        let spawned = 0;
-
         for (
-            let i = 0;
-            i < count;
-            i++
+            const type of definition.enemies
         ) {
+
             const position =
-                this.findSpawnPosition(
-                    i,
-                    count
-                );
+                this.findSpawnPosition();
 
-            if (!position) {
-                console.warn(
-                    "WaveManager: no se encontró una posición segura."
-                );
+            let enemy = null;
 
+            if (
+                type === "soldier"
+            ) {
+
+                enemy =
+                    new Soldier(
+                        this.world,
+                        position.x,
+                        position.y
+                    );
+            }
+
+            if (
+                type === "soldierBlaster"
+            ) {
+
+                enemy =
+                    new SoldierBlaster(
+                        this.world,
+                        position.x,
+                        position.y
+                    );
+            }
+
+            if (
+                type === "gunner"
+            ) {
+
+                enemy =
+                    new Gunner(
+                        this.world,
+                        position.x,
+                        position.y
+                    );
+            }
+
+            if (!enemy) {
                 continue;
             }
 
-            const soldier =
-                new Soldier(
-                    this.world,
-                    position.x,
-                    position.y
-                );
-
             window.soldiers.push(
-                soldier
+                enemy
             );
 
-            spawned++;
-        }
+            this.currentWaveEnemies.push(
+                enemy
+            );
 
-        return spawned;
+            enemy.start();
+        }
     }
 
-    findSpawnPosition(
-        index,
-        total
-    ) {
+    findSpawnPosition() {
+
         const player =
             window.rojisima;
 
         if (!player) {
-            return null;
+
+            return {
+                x: 0,
+                y: 0
+            };
         }
 
-        const baseAngle =
-            (Math.PI * 2 * index) /
-            total;
-
-        const angleStep =
-            Math.PI / 8;
-
-        const distances = [
-            this.spawnRadius,
-            this.spawnRadius + 75,
-            this.spawnRadius + 150
+        const radii = [
+            450,
+            525,
+            600
         ];
 
         for (
-            const distance of distances
+            let attempt = 0;
+            attempt < 60;
+            attempt++
         ) {
-            for (
-                let attempt = 0;
-                attempt < 16;
-                attempt++
-            ) {
-                const angle =
-                    baseAngle +
+
+            const radius =
+                radii[
+                    attempt %
+                    radii.length
+                ];
+
+            const angle =
+                (
                     attempt *
-                    angleStep;
+                    137.5
+                ) *
+                Math.PI /
+                180;
 
-                const x =
-                    player.x +
-                    Math.cos(angle) *
-                    distance;
+            const x =
+                player.x +
+                Math.cos(angle) *
+                radius;
 
-                const y =
-                    player.y +
-                    Math.sin(angle) *
-                    distance;
+            const y =
+                player.y +
+                Math.sin(angle) *
+                radius;
 
-                if (
-                    !this.positionBlocked(
-                        x,
-                        y
-                    )
-                ) {
-                    return {
-                        x,
-                        y
-                    };
-                }
+            if (
+                this.positionBlocked(
+                    x,
+                    y
+                )
+            ) {
+                continue;
+            }
+
+            if (
+                this.tooCloseToPlayer(
+                    x,
+                    y,
+                    player
+                )
+            ) {
+                continue;
+            }
+
+            if (
+                this.tooCloseToWaveEnemy(
+                    x,
+                    y
+                )
+            ) {
+                continue;
+            }
+
+            return {
+                x,
+                y
+            };
+        }
+
+        return {
+            x:
+                player.x + 450,
+            y:
+                player.y
+        };
+    }
+
+    tooCloseToPlayer(
+        x,
+        y,
+        player
+    ) {
+
+        const dx =
+            x - player.x;
+
+        const dy =
+            y - player.y;
+
+        return (
+            dx * dx +
+            dy * dy <
+            this.spawnMinDistance *
+            this.spawnMinDistance
+        );
+    }
+
+    tooCloseToWaveEnemy(
+        x,
+        y
+    ) {
+
+        const minimumGap =
+            this.spawnEnemyGap;
+
+        const minimumGapSquared =
+            minimumGap *
+            minimumGap;
+
+        for (
+            const enemy of
+                this.currentWaveEnemies
+        ) {
+
+            if (
+                !enemy ||
+                enemy.isDead
+            ) {
+                continue;
+            }
+
+            const dx =
+                x - enemy.x;
+
+            const dy =
+                y - enemy.y;
+
+            if (
+                dx * dx +
+                dy * dy <
+                minimumGapSquared
+            ) {
+                return true;
             }
         }
 
-        return null;
+        return false;
     }
 
     positionBlocked(
         centerX,
         centerY
     ) {
+
         const coverBlocks =
             window.coverBlocks;
 
@@ -206,48 +325,53 @@ class WaveManager {
             return false;
         }
 
-        const width = 44;
-        const height = 58;
+        const gridSize =
+            window.GRID_SIZE || 50;
+
+        const halfWidth = 22;
+        const halfHeight = 29;
 
         const left =
             centerX -
-            width / 2;
+            halfWidth;
 
         const right =
             centerX +
-            width / 2;
+            halfWidth;
 
         const top =
             centerY -
-            height / 2;
+            halfHeight;
 
         const bottom =
             centerY +
-            height / 2;
+            halfHeight;
 
         for (
             const block of coverBlocks
         ) {
+
             for (
                 const cell of block.cells
             ) {
+
                 const cellLeft =
                     block.x +
                     cell[0] *
-                    window.GRID_SIZE;
+                    gridSize;
 
                 const cellTop =
                     block.y +
                     cell[1] *
-                    window.GRID_SIZE;
+                    gridSize;
 
                 const cellRight =
                     cellLeft +
-                    window.GRID_SIZE;
+                    gridSize;
 
                 const cellBottom =
                     cellTop +
-                    window.GRID_SIZE;
+                    gridSize;
 
                 if (
                     right > cellLeft &&
@@ -255,6 +379,7 @@ class WaveManager {
                     bottom > cellTop &&
                     top < cellBottom
                 ) {
+
                     return true;
                 }
             }
@@ -264,138 +389,104 @@ class WaveManager {
     }
 
     update(deltaTime) {
-        if (window.gameOver) {
+
+        if (
+            this.completed ||
+            !this.waveActive
+        ) {
             return;
         }
 
-        if (this.state === "waiting") {
-            this.nextWaveTimer -=
-                deltaTime;
-
-            if (
-                this.nextWaveTimer <= 0
-            ) {
-                this.startCurrentWave();
-            }
-
-            return;
-        }
-
-        if (this.state !== "active") {
-            return;
-        }
-
-        const soldiers =
-            window.soldiers || [];
-
-        const livingSoldiers =
-            soldiers.filter(
-                (soldier) =>
-                    !soldier.isDead
+        const livingEnemies =
+            this.currentWaveEnemies.filter(
+                (enemy) =>
+                    enemy &&
+                    !enemy.isDead
             );
 
         if (
-            livingSoldiers.length === 0
+            livingEnemies.length > 0
         ) {
-            this.currentWaveIndex++;
-
-            if (
-                this.currentWaveIndex >=
-                this.waves.length
-            ) {
-                this.complete();
-                return;
-            }
-
-            this.state = "waiting";
-            this.nextWaveTimer = 2;
-
-            this.updateUI();
-
-            console.log(
-                "Wave completada. Siguiente wave en 2 segundos."
-            );
+            return;
         }
+
+        this.waveActive = false;
+
+        this.currentWave++;
+
+        if (
+            this.currentWave >=
+            this.waveDefinitions.length
+        ) {
+
+            this.complete();
+
+            return;
+        }
+
+        this.nextWaveTimer = 1;
     }
 
     complete() {
-        this.state = "complete";
-        this.running = false;
-        this.updateUI();
 
-        console.log(
-            "Todas las waves completadas."
-        );
-    }
+        this.completed = true;
 
-    updateUI() {
-        const waveLabel =
-            document.getElementById(
-                "waveLabel"
-            );
+        this.waveActive = false;
 
-        if (!waveLabel) {
-            return;
-        }
-
-        if (this.state === "complete") {
-            waveLabel.textContent =
-                "COMPLETED";
-            return;
-        }
-
-        if (this.state === "error") {
-            waveLabel.textContent =
-                "WAVE ERROR";
-            return;
-        }
-
-        const wave =
-            this.waves[
-                this.currentWaveIndex
-            ];
-
-        if (!wave) {
-            waveLabel.textContent =
-                "COMPLETED";
-            return;
-        }
-
-        waveLabel.textContent =
-            `WAVE ${wave.number}`;
+        this.currentWaveEnemies = [];
     }
 
     gameLoop(currentTime) {
-        if (!this.lastTime) {
-            this.lastTime =
-                currentTime;
-        }
 
         const deltaTime =
-            (
-                currentTime -
-                this.lastTime
-            ) / 1000;
-
-        this.lastTime =
-            currentTime;
-
-        const delta =
             Math.min(
-                deltaTime,
+                (
+                    currentTime -
+                    this.lastUpdateTime
+                ) / 1000,
                 0.05
             );
 
-        this.update(delta);
+        this.lastUpdateTime =
+            currentTime;
 
-        if (this.running) {
+        if (window.gameOver) {
+
             requestAnimationFrame(
                 (time) =>
                     this.gameLoop(time)
             );
+
+            return;
         }
+
+        if (
+            this.nextWaveTimer > 0
+        ) {
+
+            this.nextWaveTimer -=
+                deltaTime;
+
+            if (
+                this.nextWaveTimer <= 0 &&
+                !this.completed
+            ) {
+
+                this.startCurrentWave();
+            }
+        }
+
+        this.update(
+            deltaTime
+        );
+
+        requestAnimationFrame(
+            (time) =>
+                this.gameLoop(time)
+        );
     }
 }
+
 
 window.WaveManager =
     WaveManager;
