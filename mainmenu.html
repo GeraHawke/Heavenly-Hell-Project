@@ -17,7 +17,6 @@
          FUENTES
          ================================================== -->
 
-    <!-- Saira -->
     <link
         rel="preconnect"
         href="https://fonts.googleapis.com"
@@ -34,7 +33,6 @@
         rel="stylesheet"
     >
 
-    <!-- Clash Display -->
     <link
         href="https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap"
         rel="stylesheet"
@@ -286,10 +284,6 @@
         }
 
 
-        /* ==================================================
-           FILA PRINCIPAL DEL REPRODUCTOR
-           ================================================== */
-
         .audio-main {
             display: flex;
             align-items: center;
@@ -297,10 +291,6 @@
             gap: 9px;
         }
 
-
-        /* ==================================================
-           BOTÓN PLAY / PAUSE
-           ================================================== */
 
         .play-button {
             width: 32px;
@@ -329,10 +319,6 @@
         }
 
 
-        /* ==================================================
-           BARRA DE PROGRESO
-           ================================================== */
-
         .progress-container {
             width: 170px;
             height: 6px;
@@ -359,10 +345,6 @@
         }
 
 
-        /* ==================================================
-           TIEMPO
-           ================================================== */
-
         .track-time {
             min-width: 76px;
             font-size: 0.68rem;
@@ -371,10 +353,6 @@
             text-align: left;
         }
 
-
-        /* ==================================================
-           BOTONES RESTART / STOP
-           ================================================== */
 
         .audio-secondary {
             display: flex;
@@ -411,10 +389,6 @@
             transform: translateY(1px);
         }
 
-
-        /* ==================================================
-           NOMBRE DEL TRACK
-           ================================================== */
 
         .track-name {
             margin-top: 5px;
@@ -487,10 +461,6 @@
 
     <main class="menu">
 
-        <!-- ==================================================
-             CONTENIDO CENTRAL
-             ================================================== -->
-
         <section class="center-content">
 
             <h1 class="title">
@@ -506,8 +476,6 @@
             </p>
 
             <div class="controls">
-
-                <!-- SWITCH -->
 
                 <div class="heaven-toggle">
 
@@ -530,8 +498,6 @@
                 </div>
 
 
-                <!-- INICIAR -->
-
                 <button
                     class="start-button"
                     id="startButton"
@@ -543,10 +509,6 @@
 
         </section>
 
-
-        <!-- ==================================================
-             PROMOCIÓN ROJÍSIMA
-             ================================================== -->
 
         <aside class="promo">
 
@@ -564,11 +526,7 @@
 
             <div class="audio-player">
 
-                <!-- FILA PRINCIPAL -->
-
                 <div class="audio-main">
-
-                    <!-- PLAY / PAUSE -->
 
                     <button
                         class="play-button"
@@ -577,8 +535,6 @@
                     >
                         ▶
                     </button>
-
-                    <!-- BARRA -->
 
                     <div
                         class="progress-container"
@@ -597,8 +553,6 @@
 
                     </div>
 
-                    <!-- TIEMPO -->
-
                     <span
                         class="track-time"
                         id="trackTime"
@@ -608,8 +562,6 @@
 
                 </div>
 
-
-                <!-- RESTART / STOP -->
 
                 <div class="audio-secondary">
 
@@ -628,10 +580,6 @@
         </aside>
 
 
-        <!-- ==================================================
-             VERSIÓN
-             ================================================== -->
-
         <div class="version">
             Heavenly Hell // Prototype 0.1
         </div>
@@ -649,7 +597,7 @@
     >
 
         <source
-            src="../Recursos/Rojisima REPRISE.mp3"
+            src="./resources/rojisima-reprise.mp3"
             type="audio/mpeg"
         >
 
@@ -1006,8 +954,6 @@
                 );
 
 
-                /* Fade de audio */
-
                 const startVolume =
                     audio.volume;
 
@@ -1064,7 +1010,7 @@
 
 
                 window.location.href =
-                    "Game.html";
+                    "game.html";
 
             }
         );
